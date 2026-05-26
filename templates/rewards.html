@@ -2,48 +2,91 @@
 
 {% block content %}
 
-<h1>Runner Rewards</h1>
-<p>Track milestones, streaks, and achievements earned by Leaven Run Club members.</p>
+<h1 class="mb-3">Runner Rewards</h1>
 
-<h2>🔥 Current Streaks</h2>
+<!-- ADMIN MODE BANNER -->
+{% if session.admin %}
+<div class="alert alert-dark fw-bold">
+    🔓 ADMIN MODE ACTIVE — Personal information is visible
+</div>
+{% else %}
+<div class="alert alert-warning fw-bold">
+    🔒 Admin Mode Locked — Sensitive info is hidden
+</div>
+{% endif %}
 
-<div class="streak-list">
+<!-- CURRENT STREAKS -->
+<h2 class="mb-3">🔥 Current Streaks</h2>
+
+{% if runners %}
+<div class="row g-3">
+
     {% for r in runners %}
-        <div class="streak-card">
-            <h3>{{ r.name }}</h3>
-            <p>
-                {% if r.streak > 0 %}
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card shadow-sm p-3">
+
+            <h4 class="mb-2">
+                <span style="font-size:28px; margin-right:8px;">
+                    {{ r.emoji if r.emoji else "🏃" }}
+                </span>
+                {{ r.name }}
+            </h4>
+
+            {% if r.streak > 0 %}
+                <p class="text-success fw-bold mb-0">
                     🔥 {{ r.streak }}‑day streak
-                {% else %}
+                </p>
+            {% else %}
+                <p class="text-muted fw-bold mb-0">
                     ❄️ No active streak
-                {% endif %}
-            </p>
+                </p>
+            {% endif %}
+
         </div>
+    </div>
     {% endfor %}
+
 </div>
 
-<h2>🏅 Rewards</h2>
+{% else %}
+<div class="alert alert-info">
+    No runners found.
+</div>
+{% endif %}
 
-<div class="rewards-grid">
+<hr class="my-4">
 
-    <div class="reward-card">
-        <h2>🏅 10‑Run Badge</h2>
-        <p>Awarded to runners who complete 10 sessions.</p>
+<!-- REWARD BADGES -->
+<h2 class="mb-3">🏅 Rewards</h2>
+
+<div class="row g-3">
+
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="card p-3 shadow-sm">
+            <h3>🏅 10‑Run Badge</h3>
+            <p>Awarded to runners who complete 10 sessions.</p>
+        </div>
     </div>
 
-    <div class="reward-card">
-        <h2>🔥 Streak Master</h2>
-        <p>Earned by maintaining a 4‑week attendance streak.</p>
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="card p-3 shadow-sm">
+            <h3>🔥 Streak Master</h3>
+            <p>Earned by maintaining a 4‑week attendance streak.</p>
+        </div>
     </div>
 
-    <div class="reward-card">
-        <h2>💨 Speed Demon</h2>
-        <p>Given to runners who hit a personal best pace.</p>
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="card p-3 shadow-sm">
+            <h3>💨 Speed Demon</h3>
+            <p>Given to runners who hit a personal best pace.</p>
+        </div>
     </div>
 
-    <div class="reward-card">
-        <h2>🍺 Leaven Legend</h2>
-        <p>Special recognition for long‑term dedication.</p>
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="card p-3 shadow-sm">
+            <h3>🍺 Leaven Legend</h3>
+            <p>Special recognition for long‑term dedication.</p>
+        </div>
     </div>
 
 </div>

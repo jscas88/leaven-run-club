@@ -2,152 +2,131 @@
 
 {% block content %}
 
-<h1>Runners</h1>
+<h1 class="mb-3">Runners</h1>
 
+<!-- ADMIN MODE BANNER -->
 {% if session.admin %}
-<div style="background:#222; color:#fff; padding:10px; margin-bottom:20px; border-radius:6px;">
-    ADMIN MODE ACTIVE — Personal information is visible
+<div class="alert alert-dark fw-bold">
+    🔓 ADMIN MODE ACTIVE — Personal information is visible
+</div>
+{% else %}
+<div class="alert alert-warning fw-bold">
+    🔒 Admin Mode Locked — Sensitive info is hidden
 </div>
 {% endif %}
 
 <!-- RUNNER INPUT FORM -->
-<div class="form-container" style="margin-bottom:30px;">
-    <form id="runnerForm" method="POST">
-        {{ form.hidden_tag() }}
+<div class="card mb-4">
+    <div class="card-body">
 
-        <div class="form-group">
-            <label>{{ form.name.label }}</label><br>
-            {{ form.name(class="form-control", placeholder="Runner Name") }}
-        </div>
+        <form method="POST">
+            {{ form.hidden_tag() }}
 
-        <div class="form-group">
-            <label>{{ form.phone.label }}</label><br>
-            {{ form.phone(class="form-control", placeholder="Phone Number") }}
-        </div>
+            <!-- Name -->
+            <div class="mb-3">
+                <label class="form-label">{{ form.name.label }}</label>
+                {{ form.name(class="form-control", placeholder="Runner Name") }}
+            </div>
 
-        <div class="form-group">
-            <label>{{ form.referral.label }}</label><br>
-            {{ form.referral(class="form-control") }}
-        </div>
-<div class="form-group">
-    <label>{{ form.emoji.label }}</label><br>
-    {{ form.emoji(class="form-control") }}
-</div>
+            <!-- Phone -->
+            <div class="mb-3">
+                <label class="form-label">{{ form.phone.label }}</label>
+                {{ form.phone(class="form-control", placeholder="Phone Number") }}
+            </div>
 
-        <!-- ⭐ REAL HIDDEN INPUT FOR WAIVER (required for popup system) -->
-        <input type="hidden" id="waiver_signed" name="waiver_signed" value="false">
+            <!-- Referral -->
+            <div class="mb-3">
+                <label class="form-label">{{ form.referral.label }}</label>
+                {{ form.referral(class="form-control") }}
+            </div>
 
-        <button type="button" class="btn btn-primary" onclick="openWaiverModal()">
-            Add Runner
-        </button>
-    </form>
-</div>
+            <!-- Emoji Picker -->
+            <div class="mb-3">
+                <label class="form-label">{{ form.emoji.label }}</label>
+                {{ form.emoji(class="form-control") }}
+            </div>
 
+            <!-- WAIVER CHECKBOX -->
+            <div class="form-check mb-3">
+                {{ form.waiver_signed(class="form-check-input") }}
+                <label class="form-check-label">
+                    {{ form.waiver_signed.label.text }}
+                </label>
+            </div>
 
-<!-- RUNNER TABLE -->
-<h2>All Runners</h2>
+            <!-- Submit -->
+            <button class="btn btn-primary w-100 py-2">
+                Add Runner
+            </button>
 
-<table class="table table-striped" style="margin-top:20px;">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Referral Source</th>
-            <th>Waiver Signed</th>
-        </tr>
-    </thead>
+        </form>
 
-    <tbody>
-        {% for r in runners %}
-        <tr>
-            <td>
-    <span style="font-size:24px; margin-right:8px;">
-        {{ r.emoji if r.emoji else "🏃" }}
-    </span>
-    {{ r.name }}
-</td>
-
-
-            <td>
-                {% if session.admin %}
-                    {{ r.phone }}
-                {% else %}
-                    {% if r.phone %}
-                        {{ r.phone[:3] }}‑***‑****
-                    {% else %}
-                        —
-                    {% endif %}
-                {% endif %}
-            </td>
-
-            <td>
-                {% if session.admin %}
-                    {{ r.referral }}
-                {% else %}
-                    Hidden
-                {% endif %}
-            </td>
-
-            <td>
-                {% if r.waiver_signed %}
-                    ✔ Signed
-                {% else %}
-                    ✖ Not Signed
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<!-- ⭐ WAIVER POPUP MODAL ⭐ -->
-<div id="waiverModal" class="modal" style="
-    display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background:rgba(0,0,0,0.6); padding-top:60px; z-index:9999;">
-    
-    <div style="
-        background:#fff; margin:auto; padding:20px; width:60%; border-radius:8px;
-        max-height:80%; overflow-y:auto;">
-        
-        <h2>Leaven Run Club Liability Waiver</h2>
-
-        <p>By participating in Leaven Run Club activities, you acknowledge and agree to the following:</p>
-
-        <ul>
-            <li>You understand running involves inherent risks including injury, dehydration, heat illness, and accidents.</li>
-            <li>You accept full responsibility for your own health, hydration, and physical condition.</li>
-            <li>You release Leaven Run Club, its organizers, and volunteers from all liability related to participation.</li>
-            <li>You consent to the collection of attendance data for club operations.</li>
-            <li>You consent to the use of photos/videos taken during club events for promotional purposes.</li>
-            <li>You agree to follow all safety instructions and run at your own risk.</li>
-        </ul>
-
-        <p>Clicking “I Agree” serves as your digital signature.</p>
-
-        <div style="margin-top:20px; text-align:right;">
-            <button class="btn btn-secondary" onclick="closeWaiverModal()">Cancel</button>
-            <button class="btn btn-success" onclick="acceptWaiver()">I Agree</button>
-        </div>
     </div>
 </div>
 
-<script>
-function openWaiverModal() {
-    document.getElementById("waiverModal").style.display = "block";
-}
+<hr>
 
-function closeWaiverModal() {
-    document.getElementById("waiverModal").style.display = "none";
-}
+<!-- RUNNERS TABLE -->
+<h2 class="mb-3">All Runners</h2>
 
-function acceptWaiver() {
-    // Set hidden field to TRUE
-    document.getElementById("waiver_signed").value = "true";
+<div style="overflow-x: auto;">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Runner</th>
+                <th>Phone</th>
+                <th>Referral</th>
+                <th>Waiver</th>
+            </tr>
+        </thead>
 
-    // Submit the form
-    document.getElementById("runnerForm").submit();
-}
-</script>
+        <tbody>
+            {% for r in runners %}
+            <tr>
 
+                <!-- Emoji + Name -->
+                <td>
+                    <span style="font-size:26px; margin-right:8px;">
+                        {{ r.emoji if r.emoji else "🏃" }}
+                    </span>
+                    {{ r.name }}
+                </td>
+
+                <!-- Phone (masked unless admin) -->
+                <td>
+                    {% if session.admin %}
+                        {{ r.phone }}
+                    {% else %}
+                        {% if r.phone %}
+                            {{ r.phone[:3] }}‑***‑****
+                        {% else %}
+                            —
+                        {% endif %}
+                    {% endif %}
+                </td>
+
+                <!-- Referral (masked unless admin) -->
+                <td>
+                    {% if session.admin %}
+                        {{ r.referral }}
+                    {% else %}
+                        Hidden
+                    {% endif %}
+                </td>
+
+                <!-- Waiver -->
+                <td>
+                    {% if r.waiver_signed %}
+                        <span class="text-success fw-bold">✔ Signed</span>
+                    {% else %}
+                        <span class="text-danger fw-bold">✖ Not Signed</span>
+                    {% endif %}
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 {% endblock %}

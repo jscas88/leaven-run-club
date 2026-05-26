@@ -1,29 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+
+    <!-- ⭐ CRITICAL FOR MOBILE RESPONSIVENESS ⭐ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Leaven Run Club</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <style>
+        /* Global mobile-friendly font sizes */
+        body {
+            font-size: 18px;
+            padding-bottom: 90px; /* space for floating icon */
+        }
+
+        table {
+            font-size: 16px;
+        }
+
+        .navbar-brand {
+            font-size: 22px;
+        }
+
+        /* Floating Admin Lock Icon */
+        #adminLockButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #222;
+            color: white;
+            font-size: 30px;
+            padding: 14px 18px;
+            border-radius: 50%;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: 0.2s ease;
+            z-index: 99999;
+        }
+
+        #adminLockButton:hover {
+            background: #444;
+            transform: scale(1.1);
+        }
+
+        /* Mobile-friendly modal */
+        .modal-content {
+            width: 95%;
+            margin: auto;
+            font-size: 18px;
+        }
+    </style>
 </head>
+
 <body>
 
-<nav>
-    <img src="{{ url_for('static', filename='logo.png') }}" alt="Leaven Logo" class="logo-img">
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
+    <div class="container-fluid">
 
-    <a href="{{ url_for('index') }}">Today</a>
-    <a href="{{ url_for('runners') }}">Runners</a>
-    <a href="{{ url_for('rewards') }}">Rewards</a>
+        <a class="navbar-brand" href="{{ url_for('index') }}">
+            Leaven Run Club
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('index') }}">Today</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('checking') }}">Check‑In</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('runners') }}">Runners</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('rewards') }}">Rewards</a>
+                </li>
+
+            </ul>
+        </div>
+
+    </div>
 </nav>
 
+<!-- MAIN CONTENT -->
+<div class="container-fluid">
+    {% block content %}{% endblock %}
+</div>
 
-    <div class="container">
-        {% block content %}{% endblock %}
-    </div>
-
-    <!-- ⭐ FLOATING ADMIN LOCK ICON ⭐ -->
+<!-- FLOATING ADMIN LOCK ICON -->
 <a href="{{ url_for('logout') if session.get('admin') else url_for('admin') }}"
    id="adminLockButton"
    title="{{ 'Lock Admin Mode' if session.get('admin') else 'Admin Login' }}">
-    
     {% if session.get('admin') %}
         🔓
     {% else %}
@@ -31,27 +113,7 @@
     {% endif %}
 </a>
 
-<style>
-#adminLockButton {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    background: #222;
-    color: white;
-    font-size: 28px;
-    padding: 12px 16px;
-    border-radius: 50%;
-    text-decoration: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    transition: 0.2s ease;
-    z-index: 99999;
-}
-
-#adminLockButton:hover {
-    background: #444;
-    transform: scale(1.1);
-}
-</style>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

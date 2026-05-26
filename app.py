@@ -190,6 +190,29 @@ def sync():
     sync_full_dataset()
     return "Synced"
 
+@app.route('/checking', methods=['GET'])
+def checking():
+    q = request.args.get("q", "")
+    
+    if q:
+        runners = Runner.query.filter(Runner.name.ilike(f"%{q}%")).all()
+    else:
+        runners = []
+
+    return render_template("checking.html", runners=runners, query=q)
+
+@app.route('/checkin_runner/<int:runner_id>', methods=['POST'])
+def checkin_runner(runner_id):
+    today = date.today()
+    exists = Attendance.query.filter_by(runner_id=runner_id, date=today).first()
+
+    if not exists:
+        entry = Attendance(runner_id=runner_id, date=today)
+        db.session.add(entry)
+        db.session.commit()
+        sync_full_dataset()
+
+    return redirect(url_for('checking'))
 
 # ─────────────────────────────────────────────
 #  RUN APP
