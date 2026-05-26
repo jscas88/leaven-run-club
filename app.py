@@ -38,11 +38,11 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-ADMIN_PIN = "0645"   # optional admin mode
+ADMIN_PIN = "0645"
 
 
 # ─────────────────────────────────────────────
-#  GOOGLE SHEETS FULL WAREHOUSE SYNC
+#  GOOGLE SHEETS SYNC
 # ─────────────────────────────────────────────
 GOOGLE_SHEET_WEBHOOK = "YOUR_WEBHOOK_URL_HERE"
 
@@ -119,28 +119,34 @@ def runners():
         waiver_value = request.form.get("waiver_signed") == "true"
 
         new_runner = Runner(
-    name=form.name.data,
-    phone=form.phone.data,
-    referral=form.referral.data,
-    join_date=date.today(),
-    waiver_signed=waiver_value,
-    waiver_date=date.today() if waiver_value else None,
-    emoji=form.emoji.data  # ⭐ NEW
-)
-
+            name=form.name.data,
+            phone=form.phone.data,
+            referral=form.referral.data,
+            join_date=date.today(),
+            waiver_signed=waiver_value,
+            waiver_date=date.today() if waiver_value else None,
+            emoji=form.emoji.data
+        )
 
         db.session.add(new_runner)
         db.session.commit()
-
         sync_full_dataset()
+
         return redirect(url_for('runners'))
 
     all_runners = Runner.query.all()
     return render_template('runners.html', form=form, runners=all_runners)
 
 
-@app.route('/checkin/<int:runner_id>')
-def checkin(runner_id):
+@app.route('/checking', methods=['GET'])
+def checking():
+    q = request.args.get("q", "")
+    runners = Runner.query.filter(Runner.name.ilike(f"%{q}%")).all() if q else []
+    return render_template("checking.html", runners=runners, query=q)
+
+
+@app.route('/checkin_runner/<int:runner_id>', methods=['POST'])
+def checkin_runner(runner_id):
     today = date.today()
     exists = Attendance.query.filter_by(runner_id=runner_id, date=today).first()
 
@@ -150,7 +156,7 @@ def checkin(runner_id):
         db.session.commit()
         sync_full_dataset()
 
-    return redirect(url_for('index'))
+    return redirect(url_for('checking'))
 
 
 @app.route('/rewards')
@@ -164,6 +170,7 @@ def rewards():
 
         runners_with_streaks.append({
             "name": r.name,
+            "emoji": r.emoji,
             "streak": streak
         })
 
@@ -190,32 +197,6 @@ def sync():
     sync_full_dataset()
     return "Synced"
 
-@app.route('/checking', methods=['GET'])
-def checking():
-    q = request.args.get("q", "")
-    
-    if q:
-        runners = Runner.query.filter(Runner.name.ilike(f"%{q}%")).all()
-    else:
-        runners = []
 
-    return render_template("checking.html", runners=runners, query=q)
-
-@app.route('/checkin_runner/<int:runner_id>', methods=['POST'])
-def checkin_runner(runner_id):
-    today = date.today()
-    exists = Attendance.query.filter_by(runner_id=runner_id, date=today).first()
-
-    if not exists:
-        entry = Attendance(runner_id=runner_id, date=today)
-        db.session.add(entry)
-        db.session.commit()
-        sync_full_dataset()
-
-    return redirect(url_for('checking'))
-
-# ─────────────────────────────────────────────
-#  RUN APP
-# ─────────────────────────────────────────────
 if __name__ == '__main__':
     app.run(debug=True)

@@ -27,12 +27,17 @@
             font-size: 22px;
         }
 
+        /* Dark Green Navbar */
+        .navbar-dark {
+            background-color: #1b5e20 !important; /* deep athletic green */
+        }
+
         /* Floating Admin Lock Icon */
         #adminLockButton {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: #222;
+            background: #1b5e20;
             color: white;
             font-size: 30px;
             padding: 14px 18px;
@@ -44,7 +49,7 @@
         }
 
         #adminLockButton:hover {
-            background: #444;
+            background: #145214;
             transform: scale(1.1);
         }
 
@@ -60,10 +65,13 @@
 <body>
 
 <!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
+<nav class="navbar navbar-expand-lg navbar-dark mb-3">
     <div class="container-fluid">
 
-        <a class="navbar-brand" href="{{ url_for('index') }}">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='logo.png') }}"
+                 alt="Logo"
+                 style="height:40px; margin-right:10px;">
             Leaven Run Club
         </a>
 
