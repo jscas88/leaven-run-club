@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Today's Check-ins</h2>
+
+<ul>
+{% for entry in checked_in %}
+    <li>Runner ID: {{ entry.runner_id }}</li>
+{% endfor %}
+</ul>
+
+<h3>Check In a Runner</h3>
+<ul>
+{% for runner in runners %}
+    <li><a href="{{ url_for('checkin', runner_id=runner.id) }}">{{ runner.name }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

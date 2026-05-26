@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Runner Rewards</h1>
+<p>Track milestones, streaks, and achievements earned by Leaven Run Club members.</p>
+
+<h2>🔥 Current Streaks</h2>
+
+<div class="streak-list">
+    {% for r in runners %}
+        <div class="streak-card">
+            <h3>{{ r.name }}</h3>
+            <p>
+                {% if r.streak > 0 %}
+                    🔥 {{ r.streak }}‑day streak
+                {% else %}
+                    ❄️ No active streak
+                {% endif %}
+            </p>
+        </div>
+    {% endfor %}
+</div>
+
+<h2>🏅 Rewards</h2>
+
+<div class="rewards-grid">
+
+    <div class="reward-card">
+        <h2>🏅 10‑Run Badge</h2>
+        <p>Awarded to runners who complete 10 sessions.</p>
+    </div>
+
+    <div class="reward-card">
+        <h2>🔥 Streak Master</h2>
+        <p>Earned by maintaining a 4‑week attendance streak.</p>
+    </div>
+
+    <div class="reward-card">
+        <h2>💨 Speed Demon</h2>
+        <p>Given to runners who hit a personal best pace.</p>
+    </div>
+
+    <div class="reward-card">
+        <h2>🍺 Leaven Legend</h2>
+        <p>Special recognition for long‑term dedication.</p>
+    </div>
+
+</div>
+
+{% endblock %}

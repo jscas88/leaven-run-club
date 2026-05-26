@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Admin Login</h1>
+
+<div style="max-width:400px; margin:auto; margin-top:30px;">
+
+    <form method="POST">
+
+        <label for="pin" style="font-weight:bold;">Enter Admin PIN</label>
+        <input type="password"
+               id="pin"
+               name="pin"
+               class="form-control"
+               placeholder="••••"
+               style="font-size:22px; text-align:center; margin-top:10px;">
+
+        <button type="submit"
+                class="btn btn-primary"
+                style="width:100%; margin-top:20px;">
+            Unlock Admin Mode
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}
