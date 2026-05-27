@@ -4,69 +4,50 @@
 
 <h1 class="mb-3">Runners</h1>
 
-<!-- ADMIN MODE BANNER -->
-{% if session.admin %}
-<div class="alert alert-dark fw-bold">
-    🔓 ADMIN MODE ACTIVE — Personal information is visible
-</div>
-{% else %}
-<div class="alert alert-warning fw-bold">
-    🔒 Admin Mode Locked — Sensitive info is hidden
-</div>
-{% endif %}
-
-<!-- RUNNER INPUT FORM -->
 <div class="card mb-4">
     <div class="card-body">
 
+        <h4 class="mb-3">Add New Runner</h4>
+
         <form method="POST">
+
             {{ form.hidden_tag() }}
 
-            <!-- Name -->
             <div class="mb-3">
-                <label class="form-label">{{ form.name.label }}</label>
-                {{ form.name(class="form-control", placeholder="Runner Name") }}
+                {{ form.name.label }}  
+                {{ form.name(class="form-control form-control-lg") }}
             </div>
 
-            <!-- Phone -->
             <div class="mb-3">
-                <label class="form-label">{{ form.phone.label }}</label>
-                {{ form.phone(class="form-control", placeholder="Phone Number") }}
+                {{ form.phone.label }}  
+                {{ form.phone(class="form-control form-control-lg") }}
             </div>
 
-            <!-- Referral -->
             <div class="mb-3">
-                <label class="form-label">{{ form.referral.label }}</label>
-                {{ form.referral(class="form-control") }}
+                {{ form.referral.label }}  
+                {{ form.referral(class="form-control form-control-lg") }}
             </div>
 
-            <!-- Emoji Picker -->
             <div class="mb-3">
-                <label class="form-label">{{ form.emoji.label }}</label>
-                {{ form.emoji(class="form-control") }}
+                {{ form.emoji.label }}  
+                {{ form.emoji(class="form-control form-control-lg") }}
             </div>
 
-            <!-- WAIVER CHECKBOX -->
-            <div class="form-check mb-3">
-                {{ form.waiver_signed(class="form-check-input") }}
-                <label class="form-check-label">
-                    {{ form.waiver_signed.label.text }}
-                </label>
+            <div class="mb-3">
+                <label>Waiver Signed?</label>
+                <select name="waiver_signed" class="form-control form-control-lg">
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                </select>
             </div>
 
-            <!-- Submit -->
-            <button class="btn btn-primary w-100 py-2">
-                Add Runner
-            </button>
+            <button class="btn btn-primary w-100 py-3">Add Runner</button>
 
         </form>
 
     </div>
 </div>
 
-<hr>
-
-<!-- RUNNERS TABLE -->
 <h2 class="mb-3">All Runners</h2>
 
 <div style="overflow-x: auto;">
@@ -84,7 +65,6 @@
             {% for r in runners %}
             <tr>
 
-                <!-- Emoji + Name -->
                 <td>
                     <span style="font-size:26px; margin-right:8px;">
                         {{ r.emoji if r.emoji else "🏃" }}
@@ -92,29 +72,16 @@
                     {{ r.name }}
                 </td>
 
-                <!-- Phone (masked unless admin) -->
                 <td>
-                    {% if session.admin %}
-                        {{ r.phone }}
+                    {% if r.phone %}
+                        {{ r.phone[:3] }}‑***‑****
                     {% else %}
-                        {% if r.phone %}
-                            {{ r.phone[:3] }}‑***‑****
-                        {% else %}
-                            —
-                        {% endif %}
+                        —
                     {% endif %}
                 </td>
 
-                <!-- Referral (masked unless admin) -->
-                <td>
-                    {% if session.admin %}
-                        {{ r.referral }}
-                    {% else %}
-                        Hidden
-                    {% endif %}
-                </td>
+                <td>{{ r.referral }}</td>
 
-                <!-- Waiver -->
                 <td>
                     {% if r.waiver_signed %}
                         <span class="text-success fw-bold">✔ Signed</span>

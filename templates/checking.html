@@ -4,18 +4,6 @@
 
 <h1 class="mb-3">Check‑In</h1>
 
-<!-- ADMIN MODE BANNER -->
-{% if session.admin %}
-<div class="alert alert-dark fw-bold">
-    🔓 ADMIN MODE ACTIVE — Personal information is visible
-</div>
-{% else %}
-<div class="alert alert-warning fw-bold">
-    🔒 Admin Mode Locked — Sensitive info is hidden
-</div>
-{% endif %}
-
-<!-- SEARCH BAR -->
 <div class="card mb-4">
     <div class="card-body">
 
@@ -30,40 +18,31 @@
     </div>
 </div>
 
-<!-- RESULTS HEADER -->
 {% if query %}
 <h4 class="mb-3">Results for: <strong>{{ query }}</strong></h4>
 {% endif %}
 
-<!-- RUNNER RESULTS -->
 {% if runners %}
 <div class="list-group">
 
     {% for r in runners %}
     <div class="list-group-item d-flex justify-content-between align-items-center py-3">
 
-        <!-- Emoji + Name -->
         <div>
             <span style="font-size:26px; margin-right:8px;">
                 {{ r.emoji if r.emoji else "🏃" }}
             </span>
             <strong>{{ r.name }}</strong>
 
-            <!-- Optional masked phone -->
             <div class="text-muted" style="font-size:14px;">
-                {% if session.admin %}
-                    {{ r.phone }}
+                {% if r.phone %}
+                    {{ r.phone[:3] }}‑***‑****
                 {% else %}
-                    {% if r.phone %}
-                        {{ r.phone[:3] }}‑***‑****
-                    {% else %}
-                        —
-                    {% endif %}
+                    —
                 {% endif %}
             </div>
         </div>
 
-        <!-- CHECK-IN BUTTON -->
         <form method="POST" action="{{ url_for('checkin_runner', runner_id=r.id) }}">
             <button class="btn btn-success btn-lg">
                 ✔ Check In

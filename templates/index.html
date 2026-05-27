@@ -4,18 +4,6 @@
 
 <h1 class="mb-3">Today’s Attendance</h1>
 
-<!-- ADMIN MODE BANNER -->
-{% if session.admin %}
-<div class="alert alert-dark fw-bold">
-    🔓 ADMIN MODE ACTIVE — Personal information is visible
-</div>
-{% else %}
-<div class="alert alert-warning fw-bold">
-    🔒 Admin Mode Locked — Sensitive info is hidden
-</div>
-{% endif %}
-
-<!-- TODAY'S CHECKED-IN RUNNERS -->
 <div class="card mb-4">
     <div class="card-body">
 
@@ -26,23 +14,17 @@
                 {% for a in checked_in %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
 
-                    <!-- Emoji + Name -->
                     <div>
                         <span style="font-size:26px; margin-right:8px;">
                             {{ a.runner.emoji if a.runner.emoji else "🏃" }}
                         </span>
                         <strong>{{ a.runner.name }}</strong>
 
-                        <!-- Masked phone unless admin -->
                         <div class="text-muted" style="font-size:14px;">
-                            {% if session.admin %}
-                                {{ a.runner.phone }}
+                            {% if a.runner.phone %}
+                                {{ a.runner.phone[:3] }}‑***‑****
                             {% else %}
-                                {% if a.runner.phone %}
-                                    {{ a.runner.phone[:3] }}‑***‑****
-                                {% else %}
-                                    —
-                                {% endif %}
+                                —
                             {% endif %}
                         </div>
                     </div>
@@ -62,12 +44,10 @@
     </div>
 </div>
 
-<!-- CHECK-IN BUTTON -->
 <a href="{{ url_for('checking') }}" class="btn btn-primary w-100 py-3 mb-4">
     🔍 Search & Check‑In Runners
 </a>
 
-<!-- ALL RUNNERS LIST -->
 <h2 class="mb-3">All Runners</h2>
 
 <div style="overflow-x: auto;">
@@ -83,8 +63,6 @@
         <tbody>
             {% for r in runners %}
             <tr>
-
-                <!-- Emoji + Name -->
                 <td>
                     <span style="font-size:26px; margin-right:8px;">
                         {{ r.emoji if r.emoji else "🏃" }}
@@ -92,20 +70,14 @@
                     {{ r.name }}
                 </td>
 
-                <!-- Phone (masked unless admin) -->
                 <td>
-                    {% if session.admin %}
-                        {{ r.phone }}
+                    {% if r.phone %}
+                        {{ r.phone[:3] }}‑***‑****
                     {% else %}
-                        {% if r.phone %}
-                            {{ r.phone[:3] }}‑***‑****
-                        {% else %}
-                            —
-                        {% endif %}
+                        —
                     {% endif %}
                 </td>
 
-                <!-- Waiver -->
                 <td>
                     {% if r.waiver_signed %}
                         <span class="text-success fw-bold">✔ Signed</span>

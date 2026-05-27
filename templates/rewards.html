@@ -4,18 +4,6 @@
 
 <h1 class="mb-3">Runner Rewards</h1>
 
-<!-- ADMIN MODE BANNER -->
-{% if session.admin %}
-<div class="alert alert-dark fw-bold">
-    🔓 ADMIN MODE ACTIVE — Personal information is visible
-</div>
-{% else %}
-<div class="alert alert-warning fw-bold">
-    🔒 Admin Mode Locked — Sensitive info is hidden
-</div>
-{% endif %}
-
-<!-- CURRENT STREAKS -->
 <h2 class="mb-3">🔥 Current Streaks</h2>
 
 {% if runners %}
@@ -53,42 +41,5 @@
     No runners found.
 </div>
 {% endif %}
-
-<hr class="my-4">
-
-<!-- REWARD BADGES -->
-<h2 class="mb-3">🏅 Rewards</h2>
-
-<div class="row g-3">
-
-    <div class="col-12 col-md-6 col-lg-3">
-        <div class="card p-3 shadow-sm">
-            <h3>🏅 10‑Run Badge</h3>
-            <p>Awarded to runners who complete 10 sessions.</p>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-lg-3">
-        <div class="card p-3 shadow-sm">
-            <h3>🔥 Streak Master</h3>
-            <p>Earned by maintaining a 4‑week attendance streak.</p>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-lg-3">
-        <div class="card p-3 shadow-sm">
-            <h3>💨 Speed Demon</h3>
-            <p>Given to runners who hit a personal best pace.</p>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-lg-3">
-        <div class="card p-3 shadow-sm">
-            <h3>🍺 Leaven Legend</h3>
-            <p>Special recognition for long‑term dedication.</p>
-        </div>
-    </div>
-
-</div>
 
 {% endblock %}

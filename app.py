@@ -38,7 +38,7 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-ADMIN_PIN = "0645"
+#ADMIN_PIN = "0645"
 
 
 # ─────────────────────────────────────────────
@@ -177,8 +177,8 @@ def rewards():
     return render_template('rewards.html', runners=runners_with_streaks)
 
 
-@app.route('/admin', methods=['GET', 'POST'])
-def admin():
+#@app.route('/admin', methods=['GET', 'POST'])
+#def admin():
     if request.method == "POST":
         if request.form.get("pin") == ADMIN_PIN:
             session["admin"] = True
@@ -186,8 +186,8 @@ def admin():
     return render_template("admin_login.html")
 
 
-@app.route('/logout')
-def logout():
+#@app.route('/logout')
+#def logout():
     session.pop("admin", None)
     return redirect(url_for("index"))
 
