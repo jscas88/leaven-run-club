@@ -4,50 +4,50 @@
 
 <h1 class="mb-3">Runners</h1>
 
+<!-- ADD RUNNER CARD -->
 <div class="card mb-4">
     <div class="card-body">
 
         <h4 class="mb-3">Add New Runner</h4>
 
-        <form method="POST">
+        <!-- Add Runner Form -->
+        <form id="addRunnerForm" method="POST">
 
             {{ form.hidden_tag() }}
 
             <div class="mb-3">
-                {{ form.name.label }}  
-                {{ form.name(class="form-control form-control-lg") }}
+                {{ form.name.label }}
+                {{ form.name(class="form-control form-control-lg", id="runnerName") }}
             </div>
 
             <div class="mb-3">
-                {{ form.phone.label }}  
+                {{ form.phone.label }}
                 {{ form.phone(class="form-control form-control-lg") }}
             </div>
 
             <div class="mb-3">
-                {{ form.referral.label }}  
+                {{ form.referral.label }}
                 {{ form.referral(class="form-control form-control-lg") }}
             </div>
 
             <div class="mb-3">
-                {{ form.emoji.label }}  
+                {{ form.emoji.label }}
                 {{ form.emoji(class="form-control form-control-lg") }}
             </div>
 
-            <div class="mb-3">
-                <label>Waiver Signed?</label>
-                <select name="waiver_signed" class="form-control form-control-lg">
-                    <option value="false">No</option>
-                    <option value="true">Yes</option>
-                </select>
-            </div>
+            <!-- Hidden waiver field (set by modal JS) -->
+            <input type="hidden" name="waiver_signed" id="waiver_signed" value="false">
 
-            <button class="btn btn-primary w-100 py-3">Add Runner</button>
+            <button type="button" class="btn btn-primary w-100 py-3" id="openWaiverBtn">
+                Continue → Waiver
+            </button>
 
         </form>
 
     </div>
 </div>
 
+<!-- RUNNERS TABLE -->
 <h2 class="mb-3">All Runners</h2>
 
 <div style="overflow-x: auto;">
@@ -95,5 +95,60 @@
         </tbody>
     </table>
 </div>
+
+<!-- WAIVER MODAL -->
+<div class="modal fade" id="waiverModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content p-3">
+
+            <h3 class="mb-3">Leaven Run Club Liability Waiver</h3>
+
+            <p>
+                By participating in Leaven Run Club activities, you acknowledge and agree that running
+                involves inherent risks including injury, dehydration, heat exhaustion, and other hazards.
+            </p>
+
+            <p>
+                You agree that you are voluntarily participating and assume all risks. You release
+                Leaven Run Club, its organizers, and volunteers from any liability related to injury,
+                loss, or damages.
+            </p>
+
+            <p>
+                You agree to stay hydrated, listen to your body, and seek medical attention if needed.
+            </p>
+
+            <p>
+                You consent to the club collecting attendance data and using group photos for social
+                media and promotional purposes.
+            </p>
+
+            <div class="d-flex justify-content-end mt-4">
+                <button class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-success" id="acceptWaiverBtn">I Agree</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById("openWaiverBtn").addEventListener("click", function () {
+    const nameField = document.getElementById("runnerName").value.trim();
+
+    if (!nameField) {
+        alert("Please enter the runner's name before continuing.");
+        return;
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById("waiverModal"));
+    modal.show();
+});
+
+document.getElementById("acceptWaiverBtn").addEventListener("click", function () {
+    document.getElementById("waiver_signed").value = "true";
+    document.getElementById("addRunnerForm").submit();
+});
+</script>
 
 {% endblock %}
