@@ -2,18 +2,31 @@
 
 {% block content %}
 
-<h1 class="mb-3">Runner Rewards</h1>
+<h1 class="mb-4">Runner Rewards</h1>
 
-<h2 class="mb-3">🔥 Current Streaks</h2>
+<!-- MONTHLY LEADERBOARD -->
+<div class="card mb-4 p-3 shadow-sm">
+    <h3 class="mb-2">🏆 Monthly Leaderboard</h3>
 
-{% if runners %}
-<div class="row g-3">
+    {% if top_runner_name %}
+        <p class="fs-5">
+            <strong>{{ top_runner_name }}</strong> leads with
+            <strong>{{ top_runner_count }}</strong> runs this month.
+        </p>
+    {% else %}
+        <p class="text-muted">No runs recorded this month yet.</p>
+    {% endif %}
+</div>
 
+<!-- CURRENT STREAKS -->
+<h3 class="mb-3">🔥 Current Streaks</h3>
+
+<div class="row g-3 mb-4">
     {% for r in runners %}
     <div class="col-12 col-md-6 col-lg-4">
-        <div class="card shadow-sm p-3">
+        <div class="card p-3 shadow-sm">
 
-            <h4 class="mb-2">
+            <h4>
                 <span style="font-size:28px; margin-right:8px;">
                     {{ r.emoji if r.emoji else "🏃" }}
                 </span>
@@ -21,25 +34,71 @@
             </h4>
 
             {% if r.streak > 0 %}
-                <p class="text-success fw-bold mb-0">
+                <p class="text-success fw-bold mb-1">
                     🔥 {{ r.streak }}‑day streak
                 </p>
             {% else %}
-                <p class="text-muted fw-bold mb-0">
+                <p class="text-muted fw-bold mb-1">
                     ❄️ No active streak
+                </p>
+            {% endif %}
+
+            <!-- Milestones -->
+            {% if r.milestones %}
+                <p class="mt-2 mb-0">
+                    {% for m in r.milestones %}
+                        <span class="badge bg-warning text-dark me-1">{{ m }}</span>
+                    {% endfor %}
                 </p>
             {% endif %}
 
         </div>
     </div>
     {% endfor %}
-
 </div>
 
-{% else %}
-<div class="alert alert-info">
-    No runners found.
+<hr class="my-4">
+
+<!-- ATTENDANCE HEATMAP -->
+<h3 class="mb-3">📅 Attendance Heatmap</h3>
+
+<div class="heatmap-container">
+    {% for day in timeline %}
+        {% set count = day.count %}
+        {% if count == 0 %}
+            <div class="heatmap-box level-0" title="{{ day.date }}"></div>
+        {% elif count == 1 %}
+            <div class="heatmap-box level-1" title="{{ day.date }}"></div>
+        {% elif count == 2 %}
+            <div class="heatmap-box level-2" title="{{ day.date }}"></div>
+        {% elif count == 3 %}
+            <div class="heatmap-box level-3" title="{{ day.date }}"></div>
+        {% else %}
+            <div class="heatmap-box level-4" title="{{ day.date }}"></div>
+        {% endif %}
+    {% endfor %}
 </div>
-{% endif %}
+
+<style>
+.heatmap-container {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.heatmap-box {
+    width: 16px;
+    height: 16px;
+    margin-right: 3px;
+    border-radius: 3px;
+}
+
+/* Leaven Run Club Color Palette */
+.level-0 { background-color: #e0e0e0; }      /* gray */
+.level-1 { background-color: #c8e6c9; }      /* light green */
+.level-2 { background-color: #81c784; }      /* medium green */
+.level-3 { background-color: #4caf50; }      /* strong green */
+.level-4 { background-color: #fdd835; }      /* yellow highlight */
+</style>
 
 {% endblock %}
