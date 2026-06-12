@@ -18,19 +18,19 @@ class AddRunnerForm(FlaskForm):
         ],
         validators=[Optional()]
     )
+
     emoji = SelectField(
-    "Emoji",
-    choices=[
-        ("🏃", "🏃 Runner"),
-        ("🔥", "🔥 Hot Streak"),
-        ("🌟", "🌟 Star"),
-        ("🐢", "🐢 Turtle"),
-        ("⚡", "⚡ Speed"),
-        ("🍀", "🍀 Lucky"),
-        ("💪", "💪 Strong")
-    ]
-)
+        "Emoji",
+        choices=[
+            ("🏃", "🏃 Runner"),
+            ("🔥", "🔥 Hot Streak"),
+            ("🌟", "🌟 Star"),
+            ("🐢", "🐢 Turtle"),
+            ("⚡", "⚡ Speed"),
+            ("🍀", "🍀 Lucky"),
+            ("💪", "💪 Strong")
+        ]
+    )
 
-
-    waiver_signed = StringField("Waiver Signed")
+    waiver_signed = BooleanField("Waiver Signed")
     submit = SubmitField("Add Runner")
