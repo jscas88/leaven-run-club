@@ -2,75 +2,109 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaven Run Club</title>
 
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        body {
-            font-size: 18px;
-            padding-bottom: 40px;
+        .menu-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 3001;
+            font-size: 1.9rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
         }
+        .menu-btn:hover { transform: scale(1.15); }
 
-        .navbar-dark {
-            background-color: #1b5e20 !important;
+        .menu-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.45);
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.3s ease;
+            z-index: 3000;
         }
+        .menu-overlay.show { opacity: 1; visibility: visible; }
 
-        table {
-            font-size: 16px;
+        .menu-panel {
+            position: fixed;
+            top: 0; left: 0;
+            width: 240px; height: 100%;
+            background: #fff;
+            box-shadow: 3px 0 12px rgba(0,0,0,0.25);
+            padding: 25px 20px;
+            transform: translateX(-260px);
+            transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 3002;
         }
+        .menu-panel.open { transform: translateX(0); }
     </style>
+
+    {% block head %}{% endblock %}
 </head>
 
-<body>
+<body class="bg-light">
 
-<nav class="navbar navbar-expand-lg navbar-dark mb-3">
-    <div class="container-fluid">
+    <div class="menu-btn" onclick="toggleMenu()">☰</div>
+    <div id="menuOverlay" class="menu-overlay" onclick="toggleMenu()"></div>
 
-        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
-            <img src="{{ url_for('static', filename='logo.png') }}"
-                 alt="Logo"
-                 style="height:40px; margin-right:10px;">
-            Leaven Run Club
-        </a>
-
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('index') }}">Today</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('checking') }}">Check‑In</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('runners') }}">Runners</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('rewards') }}">Rewards</a>
-                </li>
-
-            </ul>
-        </div>
-
+    <div id="menuPanel" class="menu-panel">
+        <h4>Menu</h4>
+        <hr>
+        <a href="{{ url_for('index') }}" class="d-block mb-2">🏠 Home</a>
+        <a href="{{ url_for('checking') }}" class="d-block mb-2">✔ Check-In</a>
+        <a href="{{ url_for('runners_page') }}" class="d-block mb-2">➕ Add Runner</a>
+        <a href="{{ url_for('rewards') }}" class="d-block mb-2">🏅 Rewards</a>
     </div>
-</nav>
 
-<div class="container-fluid">
-    {% block content %}{% endblock %}
-</div>
+    <div class="text-center mt-4 mb-3">
+        <img src="{{ url_for('static', filename='logo.png') }}" style="max-width: 140px;">
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="container py-4">
+        {% block content %}{% endblock %}
+    </div>
 
+    <div class="modal fade" id="waiverModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header"><h5 class="modal-title">Liability Waiver</h5></div>
+          <div class="modal-body">
+            <p>By participating in Leaven Run Club, you acknowledge the risks of physical activity.</p>
+          </div>
+          <div class="modal-footer">
+            <button id="waiverAgree" class="btn btn-success">I Agree</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    function toggleMenu() {
+        const panel = document.getElementById("menuPanel");
+        const overlay = document.getElementById("menuOverlay");
+        const open = panel.classList.contains("open");
+        panel.classList.toggle("open", !open);
+        overlay.classList.toggle("show", !open);
+    }
+    </script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        if (!localStorage.getItem("waiverSigned")) {
+            new bootstrap.Modal(document.getElementById("waiverModal")).show();
+        }
+        document.getElementById("waiverAgree").onclick = () =>
+            localStorage.setItem("waiverSigned", "true");
+    });
+    </script>
+
+    {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,154 +1,30 @@
 {% extends "base.html" %}
 
 {% block content %}
+<h2>Add Runner</h2>
 
-<h1 class="mb-3">Runners</h1>
+<form method="post">
+    {{ form.hidden_tag() }}
 
-<!-- ADD RUNNER CARD -->
-<div class="card mb-4">
-    <div class="card-body">
+    <div class="mb-3">{{ form.name.label }} {{ form.name(class="form-control") }}</div>
+    <div class="mb-3">{{ form.phone.label }} {{ form.phone(class="form-control") }}</div>
+    <div class="mb-3">{{ form.referral.label }} {{ form.referral(class="form-select") }}</div>
+    <div class="mb-3">{{ form.emoji.label }} {{ form.emoji(class="form-select") }}</div>
 
-        <h4 class="mb-3">Add New Runner</h4>
-
-        <!-- Add Runner Form -->
-        <form id="addRunnerForm" method="POST">
-
-            {{ form.hidden_tag() }}
-
-            <div class="mb-3">
-                {{ form.name.label }}
-                {{ form.name(class="form-control form-control-lg", id="runnerName") }}
-            </div>
-
-            <div class="mb-3">
-                {{ form.phone.label }}
-                {{ form.phone(class="form-control form-control-lg") }}
-            </div>
-
-            <div class="mb-3">
-                {{ form.referral.label }}
-                {{ form.referral(class="form-control form-control-lg") }}
-            </div>
-
-            <div class="mb-3">
-                {{ form.emoji.label }}
-                {{ form.emoji(class="form-control form-control-lg") }}
-            </div>
-
-            <!-- Hidden waiver field (set by modal JS) -->
-            <input type="hidden" name="waiver_signed" id="waiver_signed" value="false">
-
-            <button type="button" class="btn btn-primary w-100 py-3" id="openWaiverBtn">
-                Continue → Waiver
-            </button>
-
-        </form>
-
+    <div class="form-check mb-3">
+        {{ form.waiver_signed(class="form-check-input") }}
+        {{ form.waiver_signed.label(class="form-check-label") }}
     </div>
-</div>
 
-<!-- RUNNERS TABLE -->
-<h2 class="mb-3">All Runners</h2>
+    <button class="btn btn-primary">Add Runner</button>
+</form>
 
-<div style="overflow-x: auto;">
-    <table class="table table-striped table-hover align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>Runner</th>
-                <th>Phone</th>
-                <th>Referral</th>
-                <th>Waiver</th>
-            </tr>
-        </thead>
+<hr>
 
-        <tbody>
-            {% for r in runners %}
-            <tr>
-
-                <td>
-                    <span style="font-size:26px; margin-right:8px;">
-                        {{ r.emoji if r.emoji else "🏃" }}
-                    </span>
-                    {{ r.name }}
-                </td>
-
-                <td>
-                    {% if r.phone %}
-                        {{ r.phone[:3] }}‑***‑****
-                    {% else %}
-                        —
-                    {% endif %}
-                </td>
-
-                <td>{{ r.referral }}</td>
-
-                <td>
-                    {% if r.waiver_signed %}
-                        <span class="text-success fw-bold">✔ Signed</span>
-                    {% else %}
-                        <span class="text-danger fw-bold">✖ Not Signed</span>
-                    {% endif %}
-                </td>
-
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<!-- WAIVER MODAL -->
-<div class="modal fade" id="waiverModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content p-3">
-
-            <h3 class="mb-3">Leaven Run Club Liability Waiver</h3>
-
-            <p>
-                By participating in Leaven Run Club activities, you acknowledge and agree that running
-                involves inherent risks including injury, dehydration, heat exhaustion, and other hazards.
-            </p>
-
-            <p>
-                You agree that you are voluntarily participating and assume all risks. You release
-                Leaven Run Club, its organizers, and volunteers from any liability related to injury,
-                loss, or damages.
-            </p>
-
-            <p>
-                You agree to stay hydrated, listen to your body, and seek medical attention if needed.
-            </p>
-
-            <p>
-                You consent to the club collecting attendance data and using group photos for social
-                media and promotional purposes.
-            </p>
-
-            <div class="d-flex justify-content-end mt-4">
-                <button class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-success" id="acceptWaiverBtn">I Agree</button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<script>
-document.getElementById("openWaiverBtn").addEventListener("click", function () {
-    const nameField = document.getElementById("runnerName").value.trim();
-
-    if (!nameField) {
-        alert("Please enter the runner's name before continuing.");
-        return;
-    }
-
-    const modal = new bootstrap.Modal(document.getElementById("waiverModal"));
-    modal.show();
-});
-
-document.getElementById("acceptWaiverBtn").addEventListener("click", function () {
-    document.getElementById("waiver_signed").value = "true";
-    document.getElementById("addRunnerForm").submit();
-});
-</script>
-
+<h3>All Runners</h3>
+<ul class="list-group">
+{% for r in runners %}
+    <li class="list-group-item">{{ r.emoji }} {{ r.name }}</li>
+{% endfor %}
+</ul>
 {% endblock %}

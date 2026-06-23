@@ -2,103 +2,127 @@
 
 {% block content %}
 
-<h1 class="mb-4">Runner Rewards</h1>
+<!-- REWARDS BANNER -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body text-center">
+        <h2 class="fw-bold mb-3">🎉 Leaven Run Club Rewards</h2>
 
-<!-- MONTHLY LEADERBOARD -->
-<div class="card mb-4 p-3 shadow-sm">
-    <h3 class="mb-2">🏆 Monthly Leaderboard</h3>
+        <div class="d-flex justify-content-around flex-wrap">
 
-    {% if top_runner_name %}
-        <p class="fs-5">
-            <strong>{{ top_runner_name }}</strong> leads with
-            <strong>{{ top_runner_count }}</strong> runs this month.
-        </p>
-    {% else %}
-        <p class="text-muted">No runs recorded this month yet.</p>
-    {% endif %}
-</div>
+            <div class="reward-box text-center m-2">
+                <div class="reward-icon">🍺</div>
+                <div class="reward-label">Every 2 Runs</div>
+                <small class="text-muted">Free Beer</small>
+            </div>
 
-<!-- CURRENT STREAKS -->
-<h3 class="mb-3">🔥 Current Streaks</h3>
+            <div class="reward-box text-center m-2">
+                <div class="reward-icon">👕</div>
+                <div class="reward-label">10 Runs</div>
+                <small class="text-muted">Free Shirt</small>
+            </div>
 
-<div class="row g-3 mb-4">
-    {% for r in runners %}
-    <div class="col-12 col-md-6 col-lg-4">
-        <div class="card p-3 shadow-sm">
+            <div class="reward-box text-center m-2">
+                <div class="reward-icon">🍺</div>
+                <div class="reward-label">Every 5 After 10</div>
+                <small class="text-muted">Free Beer</small>
+            </div>
 
-            <h4>
-                <span style="font-size:28px; margin-right:8px;">
-                    {{ r.emoji if r.emoji else "🏃" }}
-                </span>
-                {{ r.name }}
-            </h4>
-
-            {% if r.streak > 0 %}
-                <p class="text-success fw-bold mb-1">
-                    🔥 {{ r.streak }}‑day streak
-                </p>
-            {% else %}
-                <p class="text-muted fw-bold mb-1">
-                    ❄️ No active streak
-                </p>
-            {% endif %}
-
-            <!-- Milestones -->
-            {% if r.milestones %}
-                <p class="mt-2 mb-0">
-                    {% for m in r.milestones %}
-                        <span class="badge bg-warning text-dark me-1">{{ m }}</span>
-                    {% endfor %}
-                </p>
-            {% endif %}
+            <div class="reward-box text-center m-2">
+                <div class="reward-icon">📍</div>
+                <div class="reward-label">15 Runs</div>
+                <small class="text-muted">Collector Pin</small>
+            </div>
 
         </div>
     </div>
-    {% endfor %}
 </div>
 
-<hr class="my-4">
+<!-- RUNNER REWARDS LIST -->
+<h3 class="mb-3">Runner Progress</h3>
 
-<!-- ATTENDANCE HEATMAP -->
-<h3 class="mb-3">📅 Attendance Heatmap</h3>
+<ul class="list-group">
+{% for r in runners %}
+    {% set total = (attendance | selectattr("runner_id", "equalto", r.id) | list | length) %}
 
-<div class="heatmap-container">
-    {% for day in timeline %}
-        {% set count = day.count %}
-        {% if count == 0 %}
-            <div class="heatmap-box level-0" title="{{ day.date }}"></div>
-        {% elif count == 1 %}
-            <div class="heatmap-box level-1" title="{{ day.date }}"></div>
-        {% elif count == 2 %}
-            <div class="heatmap-box level-2" title="{{ day.date }}"></div>
-        {% elif count == 3 %}
-            <div class="heatmap-box level-3" title="{{ day.date }}"></div>
-        {% else %}
-            <div class="heatmap-box level-4" title="{{ day.date }}"></div>
-        {% endif %}
-    {% endfor %}
-</div>
+    {# Determine next reward #}
+    {% if total < 10 %}
+        {% set next_reward_runs = 2 - (total % 2) if total % 2 != 0 else 2 %}
+        {% set next_reward = "🍺 Free Beer" %}
+        {% set target = total + next_reward_runs %}
+    {% elif total == 10 %}
+        {% set next_reward_runs = 0 %}
+        {% set next_reward = "👕 Free Shirt" %}
+        {% set target = 10 %}
+    {% elif total == 15 %}
+        {% set next_reward_runs = 0 %}
+        {% set next_reward = "📍 Collector Pin" %}
+        {% set target = 15 %}
+    {% else %}
+        {% set next_reward_runs = 5 - ((total - 10) % 5) if (total - 10) % 5 != 0 else 5 %}
+        {% set next_reward = "🍺 Free Beer" %}
+        {% set target = total + next_reward_runs %}
+    {% endif %}
 
+    {# Progress percentage #}
+    {% if next_reward_runs == 0 %}
+        {% set progress = 100 %}
+    {% else %}
+        {% set progress = ((total / target) * 100) | round(0, 'floor') %}
+    {% endif %}
+
+    <li class="list-group-item">
+        <div class="d-flex justify-content-between">
+            <div>
+                {{ r.emoji }} <strong>{{ r.name }}</strong><br>
+                <small class="text-muted">{{ total }} total runs</small>
+            </div>
+
+            <div class="text-end">
+                <span class="badge bg-primary">{{ next_reward }}</span>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress mt-3" style="height: 22px;">
+            <div class="progress-bar bg-success fw-bold"
+                 role="progressbar"
+                 style="width: {{ progress }}%;">
+                {{ progress }}%
+            </div>
+        </div>
+
+        <small class="text-muted">
+            {% if next_reward_runs == 0 %}
+                Reward earned!
+            {% else %}
+                {{ next_reward_runs }} more runs until {{ next_reward }}
+            {% endif %}
+        </small>
+    </li>
+
+{% endfor %}
+</ul>
+
+{% endblock %}
+
+{% block scripts %}
 <style>
-.heatmap-container {
-    display: flex;
-    overflow-x: auto;
-    padding-bottom: 10px;
+.reward-box {
+    width: 120px;
 }
-
-.heatmap-box {
-    width: 16px;
-    height: 16px;
-    margin-right: 3px;
-    border-radius: 3px;
+.reward-icon {
+    font-size: 2.5rem;
 }
-
-/* Leaven Run Club Color Palette */
-.level-0 { background-color: #e0e0e0; }      /* gray */
-.level-1 { background-color: #c8e6c9; }      /* light green */
-.level-2 { background-color: #81c784; }      /* medium green */
-.level-3 { background-color: #4caf50; }      /* strong green */
-.level-4 { background-color: #fdd835; }      /* yellow highlight */
+.reward-label {
+    font-weight: bold;
+    margin-top: 5px;
+}
+.progress {
+    background-color: #e9ecef;
+    border-radius: 10px;
+}
+.progress-bar {
+    border-radius: 10px;
+}
 </style>
-
 {% endblock %}

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, BooleanField, SubmitField
+from wtforms import StringField, BooleanField, SubmitField, SelectField
 from wtforms.validators import DataRequired, Optional
 
 class AddRunnerForm(FlaskForm):
@@ -9,18 +9,16 @@ class AddRunnerForm(FlaskForm):
     referral = SelectField(
         "How did you hear about us?",
         choices=[
+            ("facebook", "Facebook"),
             ("instagram", "Instagram"),
             ("friend", "Friend"),
-            ("facebook", "Facebook"),
-            ("event", "Event"),
-            ("google", "Google Search"),
             ("other", "Other")
         ],
         validators=[Optional()]
     )
 
     emoji = SelectField(
-        "Emoji",
+        "Choose an Emoji Avatar",
         choices=[
             ("🏃", "🏃 Runner"),
             ("🔥", "🔥 Hot Streak"),
@@ -29,7 +27,8 @@ class AddRunnerForm(FlaskForm):
             ("⚡", "⚡ Speed"),
             ("🍀", "🍀 Lucky"),
             ("💪", "💪 Strong")
-        ]
+        ],
+        validators=[Optional()]
     )
 
     waiver_signed = BooleanField("Waiver Signed")

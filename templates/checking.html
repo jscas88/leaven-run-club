@@ -1,63 +1,127 @@
 {% extends "base.html" %}
 
 {% block content %}
+<h2 class="text-center mb-4">Tap to Check In</h2>
 
-<h1 class="mb-3">Check‑In</h1>
-
-<div class="card mb-4">
-    <div class="card-body">
-
-        <form method="GET" action="{{ url_for('checking') }}">
-            <input type="text"
-                   name="q"
-                   class="form-control form-control-lg"
-                   placeholder="Search runners..."
-                   value="{{ request.args.get('q', '') }}">
-        </form>
-
-    </div>
-</div>
-
-{% if query %}
-<h4 class="mb-3">Results for: <strong>{{ query }}</strong></h4>
-{% endif %}
-
-{% if runners %}
-<div class="list-group">
-
+<div class="runner-grid">
     {% for r in runners %}
-    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+    <div class="runner-card {% if r.checked_today %}checked{% endif %}"
+         onclick="openConfirmModal('{{ r.id }}', '{{ r.name }}', '{{ r.emoji }}', '{{ r.last4 }}', {{ r.checked_today|lower }})">
 
-        <div>
-            <span style="font-size:26px; margin-right:8px;">
-                {{ r.emoji if r.emoji else "🏃" }}
-            </span>
-            <strong>{{ r.name }}</strong>
+        <div class="runner-emoji">{{ r.emoji }}</div>
+        <div class="runner-name">{{ r.name }}</div>
 
-            <div class="text-muted" style="font-size:14px;">
-                {% if r.phone %}
-                    {{ r.phone[:3] }}‑***‑****
-                {% else %}
-                    —
-                {% endif %}
-            </div>
-        </div>
-
-        <form method="POST" action="{{ url_for('checkin_runner', runner_id=r.id) }}">
-            <button class="btn btn-success btn-lg">
-                ✔ Check In
-            </button>
-        </form>
-
+        {% if r.checked_today %}
+        <div class="badge bg-success mt-2">Checked In Today</div>
+        {% endif %}
     </div>
     {% endfor %}
+</div>
+{% endblock %}
 
+{% block scripts %}
+
+<!-- CONFIRMATION MODAL -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Check-In</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body text-center">
+        <div id="confirmEmoji" style="font-size: 3rem;"></div>
+        <h4 id="confirmName" class="mt-2"></h4>
+
+        <p class="mt-3 text-muted">Enter the last 4 digits of your phone number:</p>
+
+        <input id="codeInput" class="form-control text-center fs-4" maxlength="4" placeholder="----">
+
+        <div id="errorMsg" class="text-danger mt-2" style="display:none;">
+            Incorrect code — try again.
+        </div>
+
+        <div id="alreadyChecked" class="text-success fw-bold mt-3" style="display:none;">
+            Already checked in today ✔
+        </div>
+      </div>
+
+      <div class="modal-footer d-flex justify-content-between">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success" id="confirmCheckInBtn">Confirm</button>
+      </div>
+
+    </div>
+  </div>
 </div>
 
-{% else %}
-<div class="alert alert-info">
-    No runners found. Try searching again.
-</div>
-{% endif %}
+<script>
+let selectedRunnerId = null;
+let correctCode = null;
+let alreadyChecked = false;
+
+function openConfirmModal(id, name, emoji, last4, checked) {
+    selectedRunnerId = id;
+    correctCode = last4;
+    alreadyChecked = checked;
+
+    document.getElementById("confirmEmoji").innerHTML = emoji;
+    document.getElementById("confirmName").innerHTML = name;
+
+    document.getElementById("errorMsg").style.display = "none";
+    document.getElementById("codeInput").value = "";
+    document.getElementById("alreadyChecked").style.display = checked ? "block" : "none";
+
+    new bootstrap.Modal(document.getElementById("confirmModal")).show();
+}
+
+document.getElementById("confirmCheckInBtn").onclick = function () {
+    const entered = document.getElementById("codeInput").value;
+
+    if (alreadyChecked) {
+        bootstrap.Modal.getInstance(document.getElementById("confirmModal")).hide();
+        return;
+    }
+
+    if (entered !== correctCode) {
+        document.getElementById("errorMsg").style.display = "block";
+        return;
+    }
+
+    fetch(`/checkin_runner/${selectedRunnerId}`, { method: "POST" })
+        .then(r => r.json())
+        .then(() => {
+            bootstrap.Modal.getInstance(document.getElementById("confirmModal")).hide();
+            location.reload();
+        });
+};
+</script>
+
+<style>
+.runner-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+}
+.runner-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px 10px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform .15s, background .3s;
+}
+.runner-card:hover { transform: scale(1.05); }
+.runner-emoji { font-size: 2.2rem; }
+.runner-name { margin-top: 8px; font-weight: 600; }
+
+.runner-card.checked {
+    background: #d4f8d4;
+    border: 2px solid #4caf50;
+}
+</style>
 
 {% endblock %}

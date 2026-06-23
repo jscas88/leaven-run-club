@@ -2,94 +2,144 @@
 
 {% block content %}
 
-<h1 class="mb-3">Today’s Attendance</h1>
+<!-- HERO -->
+<div class="text-center mt-3 mb-4">
+    <h1 class="fw-bold">Leaven Run Club</h1>
+    <p class="text-muted">Community • Consistency • Growth</p>
+</div>
 
-<div class="card mb-4">
-    <div class="card-body">
-
-        <h4 class="mb-3">Checked In Today</h4>
-
-        {% if checked_in %}
-            <ul class="list-group">
-                {% for a in checked_in %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-
-                    <div>
-                        <span style="font-size:26px; margin-right:8px;">
-                            {{ a.runner.emoji if a.runner.emoji else "🏃" }}
-                        </span>
-                        <strong>{{ a.runner.name }}</strong>
-
-                        <div class="text-muted" style="font-size:14px;">
-                            {% if a.runner.phone %}
-                                {{ a.runner.phone[:3] }}‑***‑****
-                            {% else %}
-                                —
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <span class="badge bg-success">✔ Checked In</span>
-
-                </li>
-                {% endfor %}
-            </ul>
-
-        {% else %}
-            <div class="alert alert-info">
-                No one has checked in yet today.
-            </div>
-        {% endif %}
-
+<!-- COUNTDOWN -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body text-center">
+        <h4 class="mb-3">Next Run Countdown</h4>
+        <div id="countdown" class="fs-3 fw-bold"></div>
     </div>
 </div>
 
-<a href="{{ url_for('checking') }}" class="btn btn-primary w-100 py-3 mb-4">
-    🔍 Search & Check‑In Runners
-</a>
+<!-- 4-WEEK CALENDAR -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h4 class="mb-3 text-center">Upcoming 4 Weeks</h4>
 
-<h2 class="mb-3">All Runners</h2>
+        <table class="table table-bordered text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
 
-<div style="overflow-x: auto;">
-    <table class="table table-striped table-hover align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>Runner</th>
-                <th>Phone</th>
-                <th>Waiver</th>
-            </tr>
-        </thead>
+            <tbody>
+                {% set last_month = None %}
 
-        <tbody>
-            {% for r in runners %}
-            <tr>
-                <td>
-                    <span style="font-size:26px; margin-right:8px;">
-                        {{ r.emoji if r.emoji else "🏃" }}
-                    </span>
-                    {{ r.name }}
-                </td>
+                {% for week in weeks %}
+                <tr>
+                    {% for day in week %}
+                        {% set month_name = day.strftime("%B") %}
+                        {% set is_new_month = (last_month != month_name) %}
+                        {% set last_month = month_name %}
 
-                <td>
-                    {% if r.phone %}
-                        {{ r.phone[:3] }}‑***‑****
-                    {% else %}
-                        —
-                    {% endif %}
-                </td>
+                        <td class="{% if day in fridays %}run-highlight{% endif %}" style="vertical-align: top;">
+                            {% if is_new_month %}
+                                <div style="font-size: 0.75rem; font-weight: bold; color:#444;">
+                                    {{ month_name }}
+                                </div>
+                            {% endif %}
 
-                <td>
-                    {% if r.waiver_signed %}
-                        <span class="text-success fw-bold">✔ Signed</span>
-                    {% else %}
-                        <span class="text-danger fw-bold">✖ Not Signed</span>
-                    {% endif %}
-                </td>
+                            <div>{{ day.day }}</div>
 
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                            {% if day in fridays %}
+                                <div><small>6:30 PM</small></div>
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
+<!-- MAIN ACTION -->
+<div class="text-center mb-4">
+    <a href="{{ url_for('checking') }}" class="btn btn-success btn-lg px-5 py-3">
+        ✔ Start Check-In
+    </a>
+</div>
+
+<!-- NEW RUNNER BUTTON (MODAL TRIGGER) -->
+<div class="text-center mb-4">
+    <button class="btn btn-primary btn-lg px-4 py-3" data-bs-toggle="modal" data-bs-target="#newRunnerModal">
+        ➕ New Runner? Register & Check In
+    </button>
+</div>
+
+<!-- NEW RUNNER MODAL -->
+<div class="modal fade" id="newRunnerModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Welcome to Leaven Run Club!</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body text-center">
+        <p class="mb-3">
+          If this is your first time running with us, you’ll need to register so we can add you to the roster.
+        </p>
+        <p class="text-muted">It only takes 10 seconds.</p>
+      </div>
+
+      <div class="modal-footer d-flex justify-content-between">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <a href="{{ url_for('runners_page') }}" class="btn btn-primary">
+          ➕ Register Now
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const nextRunTime = new Date("{{ next_run.isoformat() }}");
+
+function updateCountdown() {
+    const now = new Date();
+    const diff = nextRunTime - now;
+
+    if (diff <= 0) {
+        document.getElementById("countdown").innerHTML = "It's Run Time!";
+        return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+
+    document.getElementById("countdown").innerHTML =
+        `${days}d ${hours}h ${minutes}m ${seconds}s`;
+}
+
+updateCountdown();
+setInterval(updateCountdown, 1000);
+</script>
+
+<style>
+.run-highlight {
+    background-color: #4caf50 !important;
+    color: white !important;
+    font-weight: bold;
+}
+</style>
 {% endblock %}
