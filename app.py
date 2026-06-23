@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, jsonify
+from flask import Flask, render_template, redirect, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime, timedelta
 from models import db, Runner, Attendance
@@ -121,9 +121,14 @@ def runners_page():
         )
         db.session.add(new_runner)
         db.session.commit()
-        return redirect("/runners")
+
+        # Set toast flag
+        session["new_runner_added"] = True
+
+        return redirect("/checking")
 
     return render_template("runners.html", form=form, runners=runners)
+
 
 
 # -----------------------------
@@ -143,3 +148,8 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
+@app.route("/clear_new_runner_flag", methods=["POST"])
+def clear_new_runner_flag():
+    session.pop("new_runner_added", None)
+    return jsonify({"cleared": True})

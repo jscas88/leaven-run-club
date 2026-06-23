@@ -1,30 +1,86 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Add Runner</h2>
 
-<form method="post">
+<h2 class="text-center mb-4">Add New Runner</h2>
+
+<form id="addRunnerForm" method="post">
     {{ form.hidden_tag() }}
 
-    <div class="mb-3">{{ form.name.label }} {{ form.name(class="form-control") }}</div>
-    <div class="mb-3">{{ form.phone.label }} {{ form.phone(class="form-control") }}</div>
-    <div class="mb-3">{{ form.referral.label }} {{ form.referral(class="form-select") }}</div>
-    <div class="mb-3">{{ form.emoji.label }} {{ form.emoji(class="form-select") }}</div>
-
-    <div class="form-check mb-3">
-        {{ form.waiver_signed(class="form-check-input") }}
-        {{ form.waiver_signed.label(class="form-check-label") }}
+    <div class="mb-3">
+        {{ form.name.label }}
+        {{ form.name(class="form-control") }}
     </div>
 
-    <button class="btn btn-primary">Add Runner</button>
+    <div class="mb-3">
+        {{ form.phone.label }}
+        {{ form.phone(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.referral.label }}
+        {{ form.referral(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.emoji.label }}
+        {{ form.emoji(class="form-select") }}
+    </div>
+
+    <!-- Hidden waiver checkbox -->
+    <div style="display:none;">
+        {{ form.waiver_signed(id="waiver_signed") }}
+    </div>
+
+    <button type="button" class="btn btn-primary btn-lg w-100" onclick="openWaiverModal()">
+        Register Runner
+    </button>
 </form>
 
-<hr>
+<!-- WAIVER MODAL -->
+<div class="modal fade" id="waiverModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
 
-<h3>All Runners</h3>
-<ul class="list-group">
-{% for r in runners %}
-    <li class="list-group-item">{{ r.emoji }} {{ r.name }}</li>
-{% endfor %}
-</ul>
+      <div class="modal-header">
+        <h5 class="modal-title">Liability Waiver</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <p>
+          By participating in Leaven Run Club, you acknowledge the risks of physical activity,
+          agree to run at your own risk, and release the organizers from liability.
+        </p>
+        <p>
+          You also consent to hydration responsibility, safe behavior, and the possibility of
+          photos being taken during events.
+        </p>
+      </div>
+
+      <div class="modal-footer d-flex justify-content-between">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success" onclick="acceptWaiver()">I Agree</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openWaiverModal() {
+    new bootstrap.Modal(document.getElementById("waiverModal")).show();
+}
+
+function acceptWaiver() {
+    // Check the hidden waiver checkbox
+    document.getElementById("waiver_signed").checked = true;
+
+    // Submit the form
+    document.getElementById("addRunnerForm").submit();
+}
+</script>
 {% endblock %}

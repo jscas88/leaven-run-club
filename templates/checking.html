@@ -17,9 +17,49 @@
     </div>
     {% endfor %}
 </div>
+
+<!-- TOAST CONTAINER -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+
+    <!-- Check-in success toast -->
+    <div id="checkinToast" class="toast align-items-center text-white bg-success border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body fw-bold">
+                ✔ Successfully Checked In!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+
+    <!-- New runner arrival toast -->
+    <div id="newRunnerToast" class="toast align-items-center text-white bg-info border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body fw-bold">
+                🎉 New runner added — please check in!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+
+</div>
+
 {% endblock %}
 
 {% block scripts %}
+
+<!-- NEW RUNNER TOAST TRIGGER -->
+<script>
+{% if session.get("new_runner_added") %}
+    const newRunnerToastEl = document.getElementById("newRunnerToast");
+    const newRunnerToast = new bootstrap.Toast(newRunnerToastEl);
+    newRunnerToast.show();
+
+    // Clear the session flag so it doesn't repeat
+    fetch("/clear_new_runner_flag", { method: "POST" });
+{% endif %}
+</script>
 
 <!-- CONFIRMATION MODAL -->
 <div class="modal fade" id="confirmModal" tabindex="-1">
@@ -94,7 +134,16 @@ document.getElementById("confirmCheckInBtn").onclick = function () {
         .then(r => r.json())
         .then(() => {
             bootstrap.Modal.getInstance(document.getElementById("confirmModal")).hide();
-            location.reload();
+
+            // Show toast
+            const toastEl = document.getElementById("checkinToast");
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+
+            // Redirect after toast finishes (2.5 seconds)
+            setTimeout(() => {
+                window.location.href = "/checking";
+            }, 2500);
         });
 };
 </script>
