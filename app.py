@@ -144,12 +144,15 @@ def rewards():
 # -----------------------------
 # RUN APP
 # -----------------------------
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+
 
 @app.route("/clear_new_runner_flag", methods=["POST"])
 def clear_new_runner_flag():
     session.pop("new_runner_added", None)
     return jsonify({"cleared": True})
+
+with app.app_context():
+    db.create_all()
+
+if __name__ == "__main__":
+    app.run(debug=True)
