@@ -154,5 +154,18 @@ def clear_new_runner_flag():
 with app.app_context():
     db.create_all()
 
+     # ---- SEED INITIAL RUNNERS (RUNS ONLY IF TABLE IS EMPTY) ----
+    if Runner.query.count() == 0:
+        initial_runners = [
+            Runner(name="Juan", phone="8135551234", referral="Friend", emoji="🏃‍♂️", waiver_signed=True),
+            Runner(name="Maria", phone="8135555678", referral="Instagram", emoji="🏃‍♀️", waiver_signed=True),
+            Runner(name="Alex", phone="7275559988", referral="Facebook", emoji="🏃", waiver_signed=True),
+            Runner(name="Chris", phone="8135554455", referral="Website", emoji="🏃‍♂️", waiver_signed=True),
+        ]
+
+        db.session.bulk_save_objects(initial_runners)
+        db.session.commit()
+        print("🌱 Seeded initial runners!")
+
 if __name__ == "__main__":
     app.run(debug=True)
