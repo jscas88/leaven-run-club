@@ -8,6 +8,7 @@ class Runner(db.Model):
     phone = db.Column(db.String(20))
     referral = db.Column(db.String(50))
     emoji = db.Column(db.String(10))
+    shoe_brand = db.Column(db.String(50))
     waiver_signed = db.Column(db.Boolean, default=False)
 
 class Attendance(db.Model):

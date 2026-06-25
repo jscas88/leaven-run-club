@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, jsonify, session
+from flask import Flask, render_template, redirect, jsonify, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime, timedelta
 from models import db, Runner, Attendance
@@ -15,8 +15,7 @@ db.init_app(app)
 # -----------------------------
 def get_next_run():
     now = datetime.now()
-    # Friday = 4
-    days_ahead = (4 - now.weekday()) % 7
+    days_ahead = (4 - now.weekday()) % 7  # Friday = 4
     next_run = now + timedelta(days=days_ahead)
     next_run = next_run.replace(hour=18, minute=30, second=0, microsecond=0)
 
@@ -33,9 +32,7 @@ def get_four_week_calendar(start_date=None):
     if not start_date:
         start_date = date.today()
 
-    # Find Sunday of current week
     start_of_week = start_date - timedelta(days=start_date.weekday() + 1 if start_date.weekday() < 6 else 0)
-
     days = [start_of_week + timedelta(days=i) for i in range(28)]
     weeks = [days[i:i+7] for i in range(0, 28, 7)]
     return weeks
@@ -48,7 +45,6 @@ def get_four_week_calendar(start_date=None):
 def index():
     next_run = get_next_run()
     weeks = get_four_week_calendar()
-
     fridays = [d for week in weeks for d in week if d.weekday() == 4]
 
     return render_template(
@@ -61,29 +57,21 @@ def index():
 
 
 # -----------------------------
-# CHECK-IN PAGE (GRID + BADGES + CODE)
+# CHECK-IN PAGE (GRID + LOGOS + STATUS)
 # -----------------------------
 @app.route("/checking", methods=["GET"])
 def checking():
     today = date.today()
     runners = Runner.query.order_by(Runner.name.asc()).all()
 
-    runner_data = []
+    # Add dynamic attribute for today's check-in
     for r in runners:
-        checked_today = Attendance.query.filter_by(runner_id=r.id, date=today).first() is not None
+        r.checked_in_today = Attendance.query.filter_by(
+            runner_id=r.id,
+            date=today
+        ).first() is not None
 
-        # Last 4 digits of phone for verification
-        last4 = (r.phone[-4:] if r.phone and len(r.phone) >= 4 else "0000")
-
-        runner_data.append({
-            "id": r.id,
-            "name": r.name,
-            "emoji": r.emoji or "🏃",
-            "last4": last4,
-            "checked_today": checked_today
-        })
-
-    return render_template("checking.html", runners=runner_data)
+    return render_template("checking.html", runners=runners)
 
 
 # -----------------------------
@@ -117,18 +105,18 @@ def runners_page():
             phone=form.phone.data,
             referral=form.referral.data,
             emoji=form.emoji.data,
+            shoe_brand=form.shoe_brand.data,   # FIXED
             waiver_signed=form.waiver_signed.data
         )
+
         db.session.add(new_runner)
         db.session.commit()
 
-        # Set toast flag
         session["new_runner_added"] = True
 
-        return redirect("/checking")
+        return redirect(url_for("checking"))  # FIXED
 
     return render_template("runners.html", form=form, runners=runners)
-
 
 
 # -----------------------------
@@ -142,30 +130,35 @@ def rewards():
 
 
 # -----------------------------
-# RUN APP
+# CLEAR TOAST FLAG
 # -----------------------------
-
-
 @app.route("/clear_new_runner_flag", methods=["POST"])
 def clear_new_runner_flag():
     session.pop("new_runner_added", None)
     return jsonify({"cleared": True})
 
+
+# -----------------------------
+# INITIALIZE + SEED
+# -----------------------------
 with app.app_context():
     db.create_all()
 
-     # ---- SEED INITIAL RUNNERS (RUNS ONLY IF TABLE IS EMPTY) ----
     if Runner.query.count() == 0:
         initial_runners = [
-            Runner(name="Juan", phone="8135551234", referral="Friend", emoji="🏃‍♂️", waiver_signed=True),
-            Runner(name="Maria", phone="8135555678", referral="Instagram", emoji="🏃‍♀️", waiver_signed=True),
-            Runner(name="Alex", phone="7275559988", referral="Facebook", emoji="🏃", waiver_signed=True),
-            Runner(name="Chris", phone="8135554455", referral="Website", emoji="🏃‍♂️", waiver_signed=True),
+            Runner(name="Juan", phone="8135551234", referral="Friend", emoji="🏃‍♂️", shoe_brand="nike", waiver_signed=True),
+            Runner(name="Maria", phone="8135555678", referral="Instagram", emoji="🏃‍♀️", shoe_brand="brooks", waiver_signed=True),
+            Runner(name="Alex", phone="7275559988", referral="Facebook", emoji="🏃", shoe_brand="asics", waiver_signed=True),
+            Runner(name="Chris", phone="8135554455", referral="Website", emoji="🏃‍♂️", shoe_brand="hoka", waiver_signed=True),
         ]
 
         db.session.bulk_save_objects(initial_runners)
         db.session.commit()
         print("🌱 Seeded initial runners!")
 
+
+# -----------------------------
+# RUN APP
+# -----------------------------
 if __name__ == "__main__":
     app.run(debug=True)
