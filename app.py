@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime, timedelta
 from models import db, Runner, Attendance
 from forms import AddRunnerForm
-from tzlocal import get_localzone   # WINDOWS-SAFE TIMEZONE
+from zoneinfo import ZoneInfo   # WINDOWS-SAFE TIMEZONE
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///runclub.db'
@@ -23,7 +23,7 @@ def is_admin():
 # NEXT RUN CALCULATION (Friday 6:30 PM)
 # -----------------------------
 def get_next_run():
-    now = datetime.now(get_localzone())  # FIXED: Windows-safe timezone
+    now = datetime.now(ZoneInfo("America/New_York"))  # FIXED: Windows-safe timezone
 
     # Friday = 4
     days_ahead = (4 - now.weekday()) % 7
