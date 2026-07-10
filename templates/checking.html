@@ -39,7 +39,7 @@
             {% endif %}
 
             <!-- Check-In Button -->
-            <form method="POST" action="/checkin/{{ r.id }}">
+            <form method="POST" action="/checkin_runner/{{ r.id }}">
                 <button class="btn {% if r.checked_in_today %}btn-secondary{% else %}btn-primary{% endif %} w-100 mt-2">
                     {% if r.checked_in_today %}
                         Checked In

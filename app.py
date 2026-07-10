@@ -88,7 +88,7 @@ def checkin_runner(runner_id):
         db.session.add(entry)
         db.session.commit()
 
-    return jsonify({"success": True})
+    return redirect(url_for("rewards"))
 
 
 # -----------------------------
