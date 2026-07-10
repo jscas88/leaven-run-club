@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime, timedelta
 from models import db, Runner, Attendance
 from forms import AddRunnerForm
+from tzlocal import get_localzone   # WINDOWS-SAFE TIMEZONE
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///runclub.db'
@@ -13,11 +14,8 @@ db.init_app(app)
 # -----------------------------
 # NEXT RUN CALCULATION (Friday 6:30 PM)
 # -----------------------------
-from zoneinfo import ZoneInfo
-
 def get_next_run():
-    # Use Eastern Time instead of UTC
-    now = datetime.now(ZoneInfo("America/New_York"))
+    now = datetime.now(get_localzone())  # FIXED: Windows-safe timezone
 
     # Friday = 4
     days_ahead = (4 - now.weekday()) % 7
@@ -31,7 +29,6 @@ def get_next_run():
         next_run += timedelta(days=7)
 
     return next_run
-
 
 
 # -----------------------------
@@ -66,14 +63,13 @@ def index():
 
 
 # -----------------------------
-# CHECK-IN PAGE (GRID + LOGOS + STATUS)
+# CHECK-IN PAGE
 # -----------------------------
 @app.route("/checking", methods=["GET"])
 def checking():
     today = date.today()
     runners = Runner.query.order_by(Runner.name.asc()).all()
 
-    # Add dynamic attribute for today's check-in
     for r in runners:
         r.checked_in_today = Attendance.query.filter_by(
             runner_id=r.id,
@@ -84,7 +80,7 @@ def checking():
 
 
 # -----------------------------
-# AJAX CHECK-IN ENDPOINT
+# CHECK-IN ENDPOINT (creates unverified attendance)
 # -----------------------------
 @app.route("/checkin_runner/<int:runner_id>", methods=["POST"])
 def checkin_runner(runner_id):
@@ -93,15 +89,16 @@ def checkin_runner(runner_id):
 
     exists = Attendance.query.filter_by(runner_id=runner.id, date=today).first()
     if not exists:
-        entry = Attendance(runner_id=runner.id, date=today, verified=False)
+        entry = Attendance(runner_id=runner.id, date=today, verified=False)  # FIXED
         db.session.add(entry)
         db.session.commit()
 
     return redirect(url_for("rewards"))
-# -----------------------------
-# Admin PAGE
-# -----------------------------
 
+
+# -----------------------------
+# ADMIN VERIFICATION PAGE
+# -----------------------------
 @app.route("/admin/verify", methods=["GET", "POST"])
 def admin_verify():
     today = date.today()
@@ -131,7 +128,7 @@ def runners_page():
             phone=form.phone.data,
             referral=form.referral.data,
             emoji=form.emoji.data,
-            shoe_brand=form.shoe_brand.data,   # FIXED
+            shoe_brand=form.shoe_brand.data,
             waiver_signed=form.waiver_signed.data
         )
 
@@ -140,18 +137,18 @@ def runners_page():
 
         session["new_runner_added"] = True
 
-        return redirect(url_for("checking"))  # FIXED
+        return redirect(url_for("checking"))
 
     return render_template("runners.html", form=form, runners=runners)
 
 
 # -----------------------------
-# REWARDS PAGE
+# REWARDS PAGE (only verified attendance)
 # -----------------------------
 @app.route("/rewards")
 def rewards():
     runners = Runner.query.all()
-    attendance = Attendance.query.filter_by(verified=True).all()
+    attendance = Attendance.query.filter_by(verified=True).all()  # FIXED
     return render_template("rewards.html", runners=runners, attendance=attendance)
 
 
