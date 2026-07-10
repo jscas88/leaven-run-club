@@ -60,14 +60,18 @@ def index():
     next_run = get_next_run()
     weeks = get_four_week_calendar()
     fridays = [d for week in weeks for d in week if d.weekday() == 4]
+    next_run_ts = int(next_run.timestamp() * 1000)
 
     return render_template(
-        "index.html",
-        next_run=next_run,
-        weeks=weeks,
-        fridays=fridays,
-        date=date
-    )
+    "index.html",
+    next_run=next_run,
+    next_run_ts=next_run_ts,
+    weeks=weeks,
+    fridays=fridays,
+    date=date
+)
+
+
 
 
 # -----------------------------
