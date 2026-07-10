@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, jsonify, session, url_for
+from flask import Flask, render_template, redirect, jsonify, session, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime, timedelta
 from models import db, Runner, Attendance
@@ -9,6 +9,14 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///runclub.db'
 app.config['SECRET_KEY'] = 'secretkey'
 db.init_app(app)
+
+# -----------------------------
+# ADMIN PIN SYSTEM
+# -----------------------------
+ADMIN_PIN = "4242"   # Change this if you want
+
+def is_admin():
+    return session.get("admin_logged_in", False)
 
 
 # -----------------------------
@@ -89,7 +97,7 @@ def checkin_runner(runner_id):
 
     exists = Attendance.query.filter_by(runner_id=runner.id, date=today).first()
     if not exists:
-        entry = Attendance(runner_id=runner.id, date=today, verified=False)  # FIXED
+        entry = Attendance(runner_id=runner.id, date=today, verified=False)
         db.session.add(entry)
         db.session.commit()
 
@@ -97,10 +105,38 @@ def checkin_runner(runner_id):
 
 
 # -----------------------------
+# ADMIN LOGIN PAGE
+# -----------------------------
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "POST":
+        pin = request.form.get("pin")
+        if pin == ADMIN_PIN:
+            session["admin_logged_in"] = True
+            return redirect(url_for("admin_verify"))
+        else:
+            return render_template("admin_login.html", error="Incorrect PIN")
+
+    return render_template("admin_login.html")
+
+
+# -----------------------------
+# ADMIN LOGOUT
+# -----------------------------
+@app.route("/admin/logout")
+def admin_logout():
+    session.pop("admin_logged_in", None)
+    return redirect(url_for("admin_login"))
+
+
+# -----------------------------
 # ADMIN VERIFICATION PAGE
 # -----------------------------
 @app.route("/admin/verify", methods=["GET", "POST"])
 def admin_verify():
+    if not is_admin():
+        return redirect(url_for("admin_login"))
+
     today = date.today()
     pending = Attendance.query.filter_by(date=today, verified=False).all()
 
@@ -148,7 +184,7 @@ def runners_page():
 @app.route("/rewards")
 def rewards():
     runners = Runner.query.all()
-    attendance = Attendance.query.filter_by(verified=True).all()  # FIXED
+    attendance = Attendance.query.filter_by(verified=True).all()
     return render_template("rewards.html", runners=runners, attendance=attendance)
 
 

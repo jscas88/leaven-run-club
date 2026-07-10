@@ -62,8 +62,11 @@
     </div>
 
     <div class="text-center mt-4 mb-3">
-        <img src="{{ url_for('static', filename='logo.png') }}" style="max-width: 140px;">
+        <a href="{{ url_for('admin_verify') }}">
+            <img src="{{ url_for('static', filename='logo.png') }}" style="max-width: 140px; cursor:pointer;">
+        </a>
     </div>
+
 
     <div class="container py-4">
         {% block content %}{% endblock %}

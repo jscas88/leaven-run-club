@@ -17,3 +17,5 @@ class Attendance(db.Model):
     date = db.Column(db.Date)
     verified = db.Column(db.Boolean, default=False)
 
+    runner = db.relationship("Runner", backref="attendances")
+
