@@ -111,7 +111,8 @@
 
 {% block scripts %}
 <script>
-const nextRunTime = new Date("{{ next_run.isoformat() }}");
+const nextRunTime = new Date({{ next_run_ts }});
+
 
 function updateCountdown() {
     const now = new Date();
