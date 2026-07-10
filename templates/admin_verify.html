@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 class="mb-4 text-center">Admin Check-In Verification</h1>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h4 class="fw-bold mb-3">Pending Check-Ins</h4>
+
+        {% if pending %}
+            <ul class="list-group">
+                {% for p in pending %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                        <!-- Runner Info -->
+                        <div>
+                            <strong>{{ p.runner.name }}</strong><br>
+                            <small class="text-muted">
+                                {{ p.date.strftime('%B %d, %Y') }}
+                            </small>
+                        </div>
+
+                        <!-- Confirm Button -->
+                        <form method="POST" class="ms-3">
+                            <input type="hidden" name="attendance_id" value="{{ p.id }}">
+                            <button class="btn btn-success btn-sm">
+                                Confirm
+                            </button>
+                        </form>
+
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">No pending check-ins for today.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

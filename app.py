@@ -93,11 +93,28 @@ def checkin_runner(runner_id):
 
     exists = Attendance.query.filter_by(runner_id=runner.id, date=today).first()
     if not exists:
-        entry = Attendance(runner_id=runner.id, date=today)
+        entry = Attendance(runner_id=runner.id, date=today, verified=False)
         db.session.add(entry)
         db.session.commit()
 
     return redirect(url_for("rewards"))
+# -----------------------------
+# Admin PAGE
+# -----------------------------
+
+@app.route("/admin/verify", methods=["GET", "POST"])
+def admin_verify():
+    today = date.today()
+    pending = Attendance.query.filter_by(date=today, verified=False).all()
+
+    if request.method == "POST":
+        att_id = request.form.get("attendance_id")
+        att = Attendance.query.get(att_id)
+        att.verified = True
+        db.session.commit()
+        return redirect(url_for("admin_verify"))
+
+    return render_template("admin_verify.html", pending=pending)
 
 
 # -----------------------------
@@ -134,7 +151,7 @@ def runners_page():
 @app.route("/rewards")
 def rewards():
     runners = Runner.query.all()
-    attendance = Attendance.query.all()
+    attendance = Attendance.query.filter_by(verified=True).all()
     return render_template("rewards.html", runners=runners, attendance=attendance)
 
 
