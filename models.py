@@ -14,4 +14,6 @@ class Runner(db.Model):
 class Attendance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     runner_id = db.Column(db.Integer, db.ForeignKey('runner.id'))
-    date = db.Column(db.String(20))
+    date = db.Column(db.Date)
+    verified = db.Column(db.Boolean, default=False)
+
