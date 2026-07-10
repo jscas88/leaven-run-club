@@ -13,16 +13,25 @@ db.init_app(app)
 # -----------------------------
 # NEXT RUN CALCULATION (Friday 6:30 PM)
 # -----------------------------
+from zoneinfo import ZoneInfo
+
 def get_next_run():
-    now = datetime.now()
-    days_ahead = (4 - now.weekday()) % 7  # Friday = 4
+    # Use Eastern Time instead of UTC
+    now = datetime.now(ZoneInfo("America/New_York"))
+
+    # Friday = 4
+    days_ahead = (4 - now.weekday()) % 7
     next_run = now + timedelta(days=days_ahead)
+
+    # Set run time
     next_run = next_run.replace(hour=18, minute=30, second=0, microsecond=0)
 
+    # If run time today has already passed, move to next week
     if next_run < now:
         next_run += timedelta(days=7)
 
     return next_run
+
 
 
 # -----------------------------
