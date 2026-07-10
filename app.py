@@ -13,7 +13,7 @@ db.init_app(app)
 # -----------------------------
 # ADMIN PIN SYSTEM
 # -----------------------------
-ADMIN_PIN = "4242"   # Change this if you want
+ADMIN_PIN = "0710"   # Change this if you want
 
 def is_admin():
     return session.get("admin_logged_in", False)
