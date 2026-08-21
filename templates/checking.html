@@ -39,15 +39,16 @@
             {% endif %}
 
             <!-- Check-In Button -->
-            <form method="POST" action="/checkin_runner/{{ r.id }}">
+            <form method="POST" action="{{ url_for('checkin_runner', runner_name=r.name) }}">
                 <button class="btn {% if r.checked_in_today %}btn-secondary{% else %}btn-primary{% endif %} w-100 mt-2">
-                    {% if r.checked_in_today %}
+                   {% if r.checked_in_today %}
                         Checked In
                     {% else %}
                         Check In
                     {% endif %}
                 </button>
             </form>
+
 
         </div>
     </div>
