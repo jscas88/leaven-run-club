@@ -83,3 +83,32 @@ body.dark #themeToggle {
     background: #2ecc71;
     color: #000;
 }
+
+.admin-toolbar {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Dark mode support */
+body.dark .admin-toolbar .btn-success {
+    background-color: #2ecc71;
+    border-color: #2ecc71;
+}
+
+body.dark .admin-toolbar .btn-primary {
+    background-color: #3498db;
+    border-color: #3498db;
+}
+
+body.dark .admin-toolbar .btn-danger {
+    background-color: #e74c3c;
+    border-color: #e74c3c;
+}
+
+body.dark .admin-toolbar .btn-secondary {
+    background-color: #bdc3c7;
+    border-color: #bdc3c7;
+    color: #000;
+}
