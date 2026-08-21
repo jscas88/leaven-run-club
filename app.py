@@ -240,6 +240,9 @@ def admin_verify():
 
     pending = [a for a in attendance if a["date"] == today and a["verified"] != "Yes"]
 
+    # Compute duplicates here
+    duplicates = find_duplicate_runners()
+
     if request.method == "POST":
         name = request.form.get("runner_name")
 
@@ -255,7 +258,8 @@ def admin_verify():
 
         return redirect(url_for("admin_verify"))
 
-    return render_template("admin_verify.html", pending=pending)
+    return render_template("admin_verify.html", pending=pending, duplicates=duplicates)
+
 
 
 # -----------------------------
