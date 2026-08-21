@@ -103,6 +103,22 @@ def add_attendance(name):
 
 
 # -----------------------------
+# Detect duplicates
+# -----------------------------
+def find_duplicate_runners():
+    runners = get_runners()
+    name_map = {}
+
+    for r in runners:
+        name = r["name"].strip().lower()
+        if name not in name_map:
+            name_map[name] = []
+        name_map[name].append(r)
+
+    duplicates = {name: items for name, items in name_map.items() if len(items) > 1}
+    return duplicates
+
+# -----------------------------
 # WEEKLY ATTENDANCE (SAFE)
 # -----------------------------
 def get_weekly_attendance():
@@ -292,6 +308,30 @@ def admin_dashboard():
     return render_template("admin_dashboard.html", weekly=sorted_weeks)
 
 
+@app.route("/admin/delete_runners", methods=["POST"])
+def delete_runners():
+    if not is_admin():
+        return redirect(url_for("admin_login"))
+
+    to_delete = request.form.getlist("delete_ids")
+
+    sheet = get_sheet(RUNNERS_WS)
+    rows = sheet.get_all_values()
+
+    # Build new sheet without deleted rows
+    new_rows = [rows[0]]  # header
+
+    for idx, row in enumerate(rows[1:], start=2):
+        row_id = str(idx)
+        if row_id not in to_delete:
+            new_rows.append(row)
+
+    sheet.clear()
+    sheet.update("A1", new_rows)
+
+    return redirect(url_for("admin_verify"))
+
+
 # -----------------------------
 # ADD RUNNER PAGE
 # -----------------------------
@@ -356,3 +396,4 @@ def clear_new_runner_flag():
 # -----------------------------
 if __name__ == "__main__":
     app.run(debug=True)
+

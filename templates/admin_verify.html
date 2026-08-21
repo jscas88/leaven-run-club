@@ -52,4 +52,36 @@
     </div>
 </div>
 
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h4 class="fw-bold mb-3">Duplicate Runners</h4>
+
+        {% set duplicates = find_duplicate_runners() %}
+
+        {% if duplicates %}
+            <form method="POST" action="{{ url_for('delete_runners') }}">
+                {% for name, items in duplicates.items() %}
+                    <div class="mb-3 p-2 border rounded bg-light">
+                        <strong>{{ items[0].name }}</strong>
+
+                        {% for r in items %}
+                            <div class="d-flex align-items-center mt-2">
+                                <input type="checkbox" name="delete_ids" value="{{ loop.index0 + 2 }}">
+                                <span class="ms-2">
+                                    {{ r.name }} — {{ r.phone }} — {{ r.referral }}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <button class="btn btn-danger w-100 mt-3">Delete Selected</button>
+            </form>
+        {% else %}
+            <p class="text-muted">No duplicate runners found.</p>
+        {% endif %}
+    </div>
+</div>
+
+
 {% endblock %}
