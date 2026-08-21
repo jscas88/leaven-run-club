@@ -93,7 +93,7 @@ def get_attendance():
 
 def add_attendance(name):
     today = date.today().strftime("%Y-%m-%d")
-    append_row(ATTENDANCE_WS, [name, today, "Yes"])
+    append_row(ATTENDANCE_WS, [name, today, "No"])  # <-- FIXED (unverified)
 
 
 # -----------------------------
@@ -117,7 +117,7 @@ def index():
 
 
 # -----------------------------
-# CHECK-IN PAGE (Google Sheets)
+# CHECK-IN PAGE
 # -----------------------------
 @app.route("/checking", methods=["GET"])
 def checking():
@@ -180,7 +180,6 @@ def admin_verify():
     if request.method == "POST":
         name = request.form.get("runner_name")
 
-        # Mark verified in Google Sheets
         sheet = get_sheet(ATTENDANCE_WS)
         rows = sheet.get_all_values()
 
@@ -188,7 +187,7 @@ def admin_verify():
             if idx == 0:
                 continue
             if row[0] == name and row[1] == today:
-                sheet.update_cell(idx + 1, 3, "Yes")  # col 3 = Verified
+                sheet.update_cell(idx + 1, 3, "Yes")  # <-- VERIFIED FIXED
                 break
 
         return redirect(url_for("admin_verify"))
@@ -197,7 +196,7 @@ def admin_verify():
 
 
 # -----------------------------
-# ADD RUNNER PAGE (Google Sheets)
+# ADD RUNNER PAGE
 # -----------------------------
 @app.route("/runners", methods=["GET", "POST"])
 def runners_page():
@@ -221,13 +220,20 @@ def runners_page():
 
 
 # -----------------------------
-# REWARDS PAGE
+# REWARDS PAGE (FIXED)
 # -----------------------------
 @app.route("/rewards")
 def rewards():
     runners = get_runners()
     attendance = get_attendance()
-    return render_template("rewards.html", runners=runners, attendance=attendance)
+
+    # ONLY count verified check-ins
+    verified_attendance = [
+        a for a in attendance
+        if str(a["verified"]).strip().lower() in ("yes", "true", "1")
+    ]
+
+    return render_template("rewards.html", runners=runners, attendance=verified_attendance)
 
 
 # -----------------------------
