@@ -1,19 +1,18 @@
 from flask import Flask, render_template, redirect, jsonify, session, url_for, request
-from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime, timedelta
-from models import db, Runner, Attendance
+from zoneinfo import ZoneInfo
+
+from google_sheets import get_sheet, append_row, get_all_rows
 from forms import AddRunnerForm
-from zoneinfo import ZoneInfo   # WINDOWS-SAFE TIMEZONE
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///runclub.db'
 app.config['SECRET_KEY'] = 'secretkey'
-db.init_app(app)
+
 
 # -----------------------------
 # ADMIN PIN SYSTEM
 # -----------------------------
-ADMIN_PIN = "0710"   # Change this if you want
+ADMIN_PIN = "0710"
 
 def is_admin():
     return session.get("admin_logged_in", False)
@@ -23,16 +22,11 @@ def is_admin():
 # NEXT RUN CALCULATION (Friday 6:30 PM)
 # -----------------------------
 def get_next_run():
-    now = datetime.now(ZoneInfo("America/New_York"))  # FIXED: Windows-safe timezone
-
-    # Friday = 4
+    now = datetime.now(ZoneInfo("America/New_York"))
     days_ahead = (4 - now.weekday()) % 7
     next_run = now + timedelta(days=days_ahead)
-
-    # Set run time
     next_run = next_run.replace(hour=18, minute=30, second=0, microsecond=0)
 
-    # If run time today has already passed, move to next week
     if next_run < now:
         next_run += timedelta(days=7)
 
@@ -53,7 +47,57 @@ def get_four_week_calendar(start_date=None):
 
 
 # -----------------------------
-# HOME / LANDING PAGE
+# GOOGLE SHEETS HELPERS
+# -----------------------------
+RUNNERS_WS = "Runners"
+ATTENDANCE_WS = "Attendance"
+
+def get_runners():
+    rows = get_all_rows(RUNNERS_WS)
+    headers = rows[0]
+    data = rows[1:]
+
+    runners = []
+    for row in data:
+        if len(row) < len(headers):
+            row += [""] * (len(headers) - len(row))
+
+        runners.append({
+            "name": row[0],
+            "phone": row[1],
+            "referral": row[2],
+            "emoji": row[3],
+            "shoe_brand": row[4],
+            "waiver_signed": row[5]
+        })
+    return runners
+
+
+def get_attendance():
+    rows = get_all_rows(ATTENDANCE_WS)
+    headers = rows[0]
+    data = rows[1:]
+
+    attendance = []
+    for row in data:
+        if len(row) < len(headers):
+            row += [""] * (len(headers) - len(row))
+
+        attendance.append({
+            "name": row[0],
+            "date": row[1],
+            "verified": row[2]
+        })
+    return attendance
+
+
+def add_attendance(name):
+    today = date.today().strftime("%Y-%m-%d")
+    append_row(ATTENDANCE_WS, [name, today, "Yes"])
+
+
+# -----------------------------
+# HOME PAGE
 # -----------------------------
 @app.route("/")
 def index():
@@ -63,53 +107,43 @@ def index():
     next_run_ts = int(next_run.timestamp() * 1000)
 
     return render_template(
-    "index.html",
-    next_run=next_run,
-    next_run_ts=next_run_ts,
-    weeks=weeks,
-    fridays=fridays,
-    date=date
-)
-
-
+        "index.html",
+        next_run=next_run,
+        next_run_ts=next_run_ts,
+        weeks=weeks,
+        fridays=fridays,
+        date=date
+    )
 
 
 # -----------------------------
-# CHECK-IN PAGE
+# CHECK-IN PAGE (Google Sheets)
 # -----------------------------
 @app.route("/checking", methods=["GET"])
 def checking():
-    today = date.today()
-    runners = Runner.query.order_by(Runner.name.asc()).all()
+    runners = get_runners()
+    attendance = get_attendance()
+
+    today = date.today().strftime("%Y-%m-%d")
+    checked_in_today = {a["name"] for a in attendance if a["date"] == today}
 
     for r in runners:
-        r.checked_in_today = Attendance.query.filter_by(
-            runner_id=r.id,
-            date=today
-        ).first() is not None
+        r["checked_in_today"] = r["name"] in checked_in_today
 
     return render_template("checking.html", runners=runners)
 
 
 # -----------------------------
-# CHECK-IN ENDPOINT (creates unverified attendance)
+# CHECK-IN ENDPOINT
 # -----------------------------
-@app.route("/checkin_runner/<int:runner_id>", methods=["POST"])
-def checkin_runner(runner_id):
-    runner = Runner.query.get_or_404(runner_id)
-    today = date.today()
-
-    exists = Attendance.query.filter_by(runner_id=runner.id, date=today).first()
-    if not exists:
-        entry = Attendance(runner_id=runner.id, date=today, verified=False)
-        db.session.add(entry)
-        db.session.commit()
-
-    return redirect(url_for("rewards"))
+@app.route("/checkin_runner/<string:runner_name>", methods=["POST"])
+def checkin_runner(runner_name):
+    add_attendance(runner_name)
+    return redirect(url_for("checking"))
 
 
 # -----------------------------
-# ADMIN LOGIN PAGE
+# ADMIN LOGIN
 # -----------------------------
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
@@ -124,9 +158,6 @@ def admin_login():
     return render_template("admin_login.html")
 
 
-# -----------------------------
-# ADMIN LOGOUT
-# -----------------------------
 @app.route("/admin/logout")
 def admin_logout():
     session.pop("admin_logged_in", None)
@@ -134,61 +165,68 @@ def admin_logout():
 
 
 # -----------------------------
-# ADMIN VERIFICATION PAGE
+# ADMIN VERIFY PAGE
 # -----------------------------
 @app.route("/admin/verify", methods=["GET", "POST"])
 def admin_verify():
     if not is_admin():
         return redirect(url_for("admin_login"))
 
-    today = date.today()
-    pending = Attendance.query.filter_by(date=today, verified=False).all()
+    attendance = get_attendance()
+    today = date.today().strftime("%Y-%m-%d")
+
+    pending = [a for a in attendance if a["date"] == today and a["verified"] != "Yes"]
 
     if request.method == "POST":
-        att_id = request.form.get("attendance_id")
-        att = Attendance.query.get(att_id)
-        att.verified = True
-        db.session.commit()
+        name = request.form.get("runner_name")
+
+        # Mark verified in Google Sheets
+        sheet = get_sheet(ATTENDANCE_WS)
+        rows = sheet.get_all_values()
+
+        for idx, row in enumerate(rows):
+            if idx == 0:
+                continue
+            if row[0] == name and row[1] == today:
+                sheet.update_cell(idx + 1, 3, "Yes")  # col 3 = Verified
+                break
+
         return redirect(url_for("admin_verify"))
 
     return render_template("admin_verify.html", pending=pending)
 
 
 # -----------------------------
-# ADD RUNNER PAGE
+# ADD RUNNER PAGE (Google Sheets)
 # -----------------------------
 @app.route("/runners", methods=["GET", "POST"])
 def runners_page():
     form = AddRunnerForm()
-    runners = Runner.query.order_by(Runner.name.asc()).all()
+    runners = get_runners()
 
     if form.validate_on_submit():
-        new_runner = Runner(
-            name=form.name.data,
-            phone=form.phone.data,
-            referral=form.referral.data,
-            emoji=form.emoji.data,
-            shoe_brand=form.shoe_brand.data,
-            waiver_signed=form.waiver_signed.data
-        )
-
-        db.session.add(new_runner)
-        db.session.commit()
+        append_row(RUNNERS_WS, [
+            form.name.data,
+            form.phone.data,
+            form.referral.data,
+            form.emoji.data,
+            form.shoe_brand.data,
+            form.waiver_signed.data
+        ])
 
         session["new_runner_added"] = True
-
         return redirect(url_for("checking"))
 
     return render_template("runners.html", form=form, runners=runners)
 
 
 # -----------------------------
-# REWARDS PAGE (only verified attendance)
+# REWARDS PAGE
 # -----------------------------
 @app.route("/rewards")
 def rewards():
-    runners = Runner.query.all()
-    attendance = Attendance.query.filter_by(verified=True).all()
+    runners = get_runners()
+    attendance = get_attendance()
     return render_template("rewards.html", runners=runners, attendance=attendance)
 
 
@@ -199,25 +237,6 @@ def rewards():
 def clear_new_runner_flag():
     session.pop("new_runner_added", None)
     return jsonify({"cleared": True})
-
-
-# -----------------------------
-# INITIALIZE + SEED
-# -----------------------------
-with app.app_context():
-    db.create_all()
-
-    if Runner.query.count() == 0:
-        initial_runners = [
-            Runner(name="Juan", phone="8135551234", referral="Friend", emoji="🏃‍♂️", shoe_brand="nike", waiver_signed=True),
-            Runner(name="Maria", phone="8135555678", referral="Instagram", emoji="🏃‍♀️", shoe_brand="brooks", waiver_signed=True),
-            Runner(name="Alex", phone="7275559988", referral="Facebook", emoji="🏃", shoe_brand="asics", waiver_signed=True),
-            Runner(name="Chris", phone="8135554455", referral="Website", emoji="🏃‍♂️", shoe_brand="hoka", waiver_signed=True),
-        ]
-
-        db.session.bulk_save_objects(initial_runners)
-        db.session.commit()
-        print("🌱 Seeded initial runners!")
 
 
 # -----------------------------
