@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 class="mb-4 text-center">📊 Admin Dashboard</h1>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h4 class="fw-bold mb-3">Weekly Attendance Summary</h4>
+
+        {% if weekly %}
+            {% for week, data in weekly.items() %}
+                <div class="mb-4 p-3 border rounded bg-white">
+                    <h5 class="fw-bold">
+                        Week of {{ data.week_start.strftime('%B %d, %Y') }}
+                    </h5>
+
+                    <p class="mb-1">
+                        <strong>Total Runs:</strong> {{ data.runs }}
+                    </p>
+
+                    <p class="mb-1 text-success">
+                        <strong>Verified:</strong> {{ data.verified_runs }}
+                    </p>
+
+                    <p class="mb-1 text-warning">
+                        <strong>Pending:</strong> {{ data.pending_runs }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Unique Runners:</strong> {{ data.runners | length }}
+                    </p>
+
+                    <small class="text-muted">
+                        Runners: {{ data.runners | join(', ') }}
+                    </small>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">No attendance data available.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -95,6 +95,43 @@ def add_attendance(name):
     today = date.today().strftime("%Y-%m-%d")
     append_row(ATTENDANCE_WS, [name, today, "No"])   # unverified until admin approves
 
+def get_weekly_attendance():
+    attendance = get_attendance()
+
+    # Convert dates into Python date objects
+    parsed = []
+    for a in attendance:
+        try:
+            d = datetime.strptime(a["date"], "%Y-%m-%d").date()
+            parsed.append({"name": a["name"], "date": d, "verified": a["verified"]})
+        except:
+            continue
+
+    # Group by week (Mon–Sun)
+    weekly = {}
+    for a in parsed:
+        week_start = a["date"] - timedelta(days=a["date"].weekday())
+        week_key = week_start.strftime("%Y-%m-%d")
+
+        if week_key not in weekly:
+            weekly[week_key] = {
+                "week_start": week_start,
+                "runs": 0,
+                "verified_runs": 0,
+                "pending_runs": 0,
+                "runners": set()
+            }
+
+        weekly[week_key]["runs"] += 1
+        weekly[week_key]["runners"].add(a["name"])
+
+        if a["verified"].lower() == "yes":
+            weekly[week_key]["verified_runs"] += 1
+        else:
+            weekly[week_key]["pending_runs"] += 1
+
+    return weekly
+
 
 # -----------------------------
 # HOME PAGE
