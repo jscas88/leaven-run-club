@@ -93,7 +93,7 @@ def get_attendance():
 
 def add_attendance(name):
     today = date.today().strftime("%Y-%m-%d")
-    append_row(ATTENDANCE_WS, [name, today, "No"])  # <-- FIXED (unverified)
+    append_row(ATTENDANCE_WS, [name, today, "No"])   # <-- unverified until admin approves
 
 
 # -----------------------------
@@ -175,6 +175,7 @@ def admin_verify():
     attendance = get_attendance()
     today = date.today().strftime("%Y-%m-%d")
 
+    # Only today's unverified check-ins
     pending = [a for a in attendance if a["date"] == today and a["verified"] != "Yes"]
 
     if request.method == "POST":
@@ -187,7 +188,7 @@ def admin_verify():
             if idx == 0:
                 continue
             if row[0] == name and row[1] == today:
-                sheet.update_cell(idx + 1, 3, "Yes")  # <-- VERIFIED FIXED
+                sheet.update_cell(idx + 1, 3, "Yes")   # <-- mark verified
                 break
 
         return redirect(url_for("admin_verify"))
@@ -220,17 +221,16 @@ def runners_page():
 
 
 # -----------------------------
-# REWARDS PAGE (FIXED)
+# REWARDS PAGE (verified only)
 # -----------------------------
 @app.route("/rewards")
 def rewards():
     runners = get_runners()
     attendance = get_attendance()
 
-    # ONLY count verified check-ins
     verified_attendance = [
         a for a in attendance
-        if str(a["verified"]).strip().lower() in ("yes", "true", "1")
+        if str(a["verified"]).strip().lower() == "yes"
     ]
 
     return render_template("rewards.html", runners=runners, attendance=verified_attendance)
