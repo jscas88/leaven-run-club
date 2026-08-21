@@ -42,7 +42,9 @@
 
 <ul class="list-group">
 {% for r in runners %}
-    {% set total = (attendance | selectattr("runner_id", "equalto", r.id) | list | length) %}
+
+    {# Count verified attendance by name #}
+    {% set total = (attendance | selectattr("name", "equalto", r.name) | list | length) %}
 
     {# Determine next reward #}
     {% if total < 10 %}
