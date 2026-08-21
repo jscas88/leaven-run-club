@@ -54,6 +54,9 @@ ATTENDANCE_WS = "Attendance"
 
 def get_runners():
     rows = get_all_rows(RUNNERS_WS)
+    if not rows:
+        return []
+
     headers = rows[0]
     data = rows[1:]
 
@@ -75,6 +78,9 @@ def get_runners():
 
 def get_attendance():
     rows = get_all_rows(ATTENDANCE_WS)
+    if not rows:
+        return []
+
     headers = rows[0]
     data = rows[1:]
 
@@ -95,10 +101,15 @@ def add_attendance(name):
     today = date.today().strftime("%Y-%m-%d")
     append_row(ATTENDANCE_WS, [name, today, "No"])   # unverified until admin approves
 
+
+# -----------------------------
+# WEEKLY ATTENDANCE (SAFE)
+# -----------------------------
 def get_weekly_attendance():
     attendance = get_attendance()
+    if not attendance:
+        return {}
 
-    # Convert dates into Python date objects
     parsed = []
     for a in attendance:
         try:
@@ -107,7 +118,6 @@ def get_weekly_attendance():
         except:
             continue
 
-    # Group by week (Mon–Sun)
     weekly = {}
     for a in parsed:
         week_start = a["date"] - timedelta(days=a["date"].weekday())
@@ -176,7 +186,7 @@ def checking():
 @app.route("/checkin_runner/<string:runner_name>", methods=["POST"])
 def checkin_runner(runner_name):
     add_attendance(runner_name)
-    return redirect(url_for("rewards"))   # send runner to Rewards page
+    return redirect(url_for("rewards"))
 
 
 # -----------------------------
@@ -233,23 +243,27 @@ def admin_verify():
 
 
 # -----------------------------
-# ADMIN CLEAR ALL PENDING
+# ADMIN CLEAR ALL PENDING (SAFE)
 # -----------------------------
 @app.route("/admin/clear_pending", methods=["POST"])
 def clear_pending():
     if not is_admin():
         return redirect(url_for("admin_login"))
 
-    today = date.today().strftime("%Y-%m-%d")
     sheet = get_sheet(ATTENDANCE_WS)
     rows = sheet.get_all_values()
+
+    # Prevent crash if sheet is empty or only header exists
+    if not rows or len(rows) == 1:
+        return redirect(url_for("admin_verify"))
+
+    today = date.today().strftime("%Y-%m-%d")
 
     new_rows = [rows[0]]  # header
 
     for row in rows[1:]:
         name, row_date, verified = row[0], row[1], row[2]
 
-        # Keep verified OR non-today rows
         if row_date != today or verified == "Yes":
             new_rows.append(row)
 
@@ -257,6 +271,25 @@ def clear_pending():
     sheet.update("A1", new_rows)
 
     return redirect(url_for("admin_verify"))
+
+
+# -----------------------------
+# ADMIN DASHBOARD
+# -----------------------------
+@app.route("/admin/dashboard")
+def admin_dashboard():
+    if not is_admin():
+        return redirect(url_for("admin_login"))
+
+    weekly = get_weekly_attendance()
+
+    sorted_weeks = dict(sorted(
+        weekly.items(),
+        key=lambda x: x[1]["week_start"],
+        reverse=True
+    ))
+
+    return render_template("admin_dashboard.html", weekly=sorted_weeks)
 
 
 # -----------------------------
@@ -284,7 +317,7 @@ def runners_page():
 
 
 # -----------------------------
-# REWARDS PAGE (verified + pending)
+# REWARDS PAGE
 # -----------------------------
 @app.route("/rewards")
 def rewards():
