@@ -4,6 +4,7 @@
 
 <h1 class="mb-4 text-center">Admin Check-In Verification</h1>
 
+<!-- ADMIN TOOLBAR -->
 <div class="admin-toolbar mb-4">
     <a href="{{ url_for('admin_dashboard') }}" class="btn btn-success btn-sm">📊 Dashboard</a>
     <a href="{{ url_for('admin_verify') }}" class="btn btn-primary btn-sm">✔ Verify</a>
@@ -15,17 +16,13 @@
     <a href="{{ url_for('admin_logout') }}" class="btn btn-secondary btn-sm">🚪 Logout</a>
 </div>
 
-
-
+<!-- PENDING CHECK-INS -->
 <div class="card shadow-sm mb-4">
     <div class="card-body">
         <h4 class="fw-bold mb-3">Pending Check-Ins</h4>
 
-        <!-- CLEAR ALL PENDING BUTTON -->
         <form method="POST" action="{{ url_for('clear_pending') }}" class="mb-3">
-            <button class="btn btn-danger btn-sm">
-                Clear All Pending Check-Ins
-            </button>
+            <button class="btn btn-danger btn-sm">Clear All Pending Check-Ins</button>
         </form>
 
         {% if pending %}
@@ -52,11 +49,10 @@
     </div>
 </div>
 
+<!-- DUPLICATE RUNNERS -->
 <div class="card shadow-sm mb-4">
     <div class="card-body">
         <h4 class="fw-bold mb-3">Duplicate Runners</h4>
-
-        {% set duplicates = find_duplicate_runners() %}
 
         {% if duplicates %}
             <form method="POST" action="{{ url_for('delete_runners') }}">
@@ -66,7 +62,7 @@
 
                         {% for r in items %}
                             <div class="d-flex align-items-center mt-2">
-                                <input type="checkbox" name="delete_ids" value="{{ loop.index0 + 2 }}">
+                                <input type="checkbox" name="delete_ids" value="{{ r.row_id }}">
                                 <span class="ms-2">
                                     {{ r.name }} — {{ r.phone }} — {{ r.referral }}
                                 </span>
@@ -82,6 +78,5 @@
         {% endif %}
     </div>
 </div>
-
 
 {% endblock %}

@@ -2,38 +2,37 @@
 
 {% block content %}
 
-<h1 class="mb-4 text-center">📊 Admin Dashboard</h1>
+<h1 class="mb-4 text-center">Admin Dashboard</h1>
 
-<div class="card shadow-sm mb-4">
+<!-- ADMIN TOOLBAR -->
+<div class="admin-toolbar mb-4">
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-success btn-sm">📊 Dashboard</a>
+    <a href="{{ url_for('admin_verify') }}" class="btn btn-primary btn-sm">✔ Verify</a>
+
+    <form method="POST" action="{{ url_for('clear_pending') }}" style="display:inline;">
+        <button class="btn btn-danger btn-sm">🗑 Clear Pending</button>
+    </form>
+
+    <a href="{{ url_for('admin_logout') }}" class="btn btn-secondary btn-sm">🚪 Logout</a>
+</div>
+
+<!-- WEEKLY SUMMARY -->
+<div class="card shadow-sm">
     <div class="card-body">
         <h4 class="fw-bold mb-3">Weekly Attendance Summary</h4>
 
         {% if weekly %}
-            {% for week, data in weekly.items() %}
-                <div class="mb-4 p-3 border rounded bg-white">
-                    <h5 class="fw-bold">
-                        Week of {{ data.week_start.strftime('%B %d, %Y') }}
-                    </h5>
+            {% for week_key, w in weekly.items() %}
+                <div class="mb-4 p-3 border rounded bg-light">
+                    <h5 class="fw-bold">{{ w.week_start.strftime("%B %d, %Y") }}</h5>
 
-                    <p class="mb-1">
-                        <strong>Total Runs:</strong> {{ data.runs }}
+                    <p class="mb-1"><strong>Total Runs:</strong> {{ w.runs }}</p>
+                    <p class="mb-1"><strong>Verified:</strong> {{ w.verified_runs }}</p>
+                    <p class="mb-1"><strong>Pending:</strong> {{ w.pending_runs }}</p>
+
+                    <p class="mb-1"><strong>Runners:</strong>
+                        {{ w.runners | join(", ") }}
                     </p>
-
-                    <p class="mb-1 text-success">
-                        <strong>Verified:</strong> {{ data.verified_runs }}
-                    </p>
-
-                    <p class="mb-1 text-warning">
-                        <strong>Pending:</strong> {{ data.pending_runs }}
-                    </p>
-
-                    <p class="mb-1">
-                        <strong>Unique Runners:</strong> {{ data.runners | length }}
-                    </p>
-
-                    <small class="text-muted">
-                        Runners: {{ data.runners | join(', ') }}
-                    </small>
                 </div>
             {% endfor %}
         {% else %}
