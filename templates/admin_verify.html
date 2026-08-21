@@ -8,25 +8,26 @@
     <div class="card-body">
         <h4 class="fw-bold mb-3">Pending Check-Ins</h4>
 
+        <!-- CLEAR ALL PENDING BUTTON -->
+        <form method="POST" action="{{ url_for('clear_pending') }}" class="mb-3">
+            <button class="btn btn-danger btn-sm">
+                Clear All Pending Check-Ins
+            </button>
+        </form>
+
         {% if pending %}
             <ul class="list-group">
                 {% for p in pending %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
 
-                        <!-- Runner Info -->
                         <div>
                             <strong>{{ p.name }}</strong><br>
-                            <small class="text-muted">
-                                {{ p.date }}
-                            </small>
+                            <small class="text-muted">{{ p.date }}</small>
                         </div>
 
-                        <!-- Confirm Button -->
                         <form method="POST" class="ms-3">
                             <input type="hidden" name="runner_name" value="{{ p.name }}">
-                            <button class="btn btn-success btn-sm">
-                                Confirm
-                            </button>
+                            <button class="btn btn-success btn-sm">Confirm</button>
                         </form>
 
                     </li>

@@ -93,7 +93,7 @@ def get_attendance():
 
 def add_attendance(name):
     today = date.today().strftime("%Y-%m-%d")
-    append_row(ATTENDANCE_WS, [name, today, "No"])   # <-- unverified until admin approves
+    append_row(ATTENDANCE_WS, [name, today, "No"])   # unverified until admin approves
 
 
 # -----------------------------
@@ -139,7 +139,7 @@ def checking():
 @app.route("/checkin_runner/<string:runner_name>", methods=["POST"])
 def checkin_runner(runner_name):
     add_attendance(runner_name)
-    return redirect(url_for("rewards"))
+    return redirect(url_for("rewards"))   # send runner to Rewards page
 
 
 # -----------------------------
@@ -175,7 +175,6 @@ def admin_verify():
     attendance = get_attendance()
     today = date.today().strftime("%Y-%m-%d")
 
-    # Only today's unverified check-ins
     pending = [a for a in attendance if a["date"] == today and a["verified"] != "Yes"]
 
     if request.method == "POST":
@@ -188,12 +187,39 @@ def admin_verify():
             if idx == 0:
                 continue
             if row[0] == name and row[1] == today:
-                sheet.update_cell(idx + 1, 3, "Yes")   # <-- mark verified
+                sheet.update_cell(idx + 1, 3, "Yes")
                 break
 
         return redirect(url_for("admin_verify"))
 
     return render_template("admin_verify.html", pending=pending)
+
+
+# -----------------------------
+# ADMIN CLEAR ALL PENDING
+# -----------------------------
+@app.route("/admin/clear_pending", methods=["POST"])
+def clear_pending():
+    if not is_admin():
+        return redirect(url_for("admin_login"))
+
+    today = date.today().strftime("%Y-%m-%d")
+    sheet = get_sheet(ATTENDANCE_WS)
+    rows = sheet.get_all_values()
+
+    new_rows = [rows[0]]  # header
+
+    for row in rows[1:]:
+        name, row_date, verified = row[0], row[1], row[2]
+
+        # Keep verified OR non-today rows
+        if row_date != today or verified == "Yes":
+            new_rows.append(row)
+
+    sheet.clear()
+    sheet.update("A1", new_rows)
+
+    return redirect(url_for("admin_verify"))
 
 
 # -----------------------------
@@ -221,7 +247,7 @@ def runners_page():
 
 
 # -----------------------------
-# REWARDS PAGE (verified only)
+# REWARDS PAGE (verified + pending)
 # -----------------------------
 @app.route("/rewards")
 def rewards():
@@ -233,7 +259,17 @@ def rewards():
         if str(a["verified"]).strip().lower() == "yes"
     ]
 
-    return render_template("rewards.html", runners=runners, attendance=verified_attendance)
+    pending_attendance = [
+        a for a in attendance
+        if str(a["verified"]).strip().lower() != "yes"
+    ]
+
+    return render_template(
+        "rewards.html",
+        runners=runners,
+        attendance=verified_attendance,
+        pending_attendance=pending_attendance
+    )
 
 
 # -----------------------------
