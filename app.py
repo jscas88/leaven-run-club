@@ -139,7 +139,7 @@ def checking():
 @app.route("/checkin_runner/<string:runner_name>", methods=["POST"])
 def checkin_runner(runner_name):
     add_attendance(runner_name)
-    return redirect(url_for("checking"))
+    return redirect(url_for("rewards"))
 
 
 # -----------------------------
