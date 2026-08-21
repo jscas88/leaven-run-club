@@ -15,15 +15,15 @@
 
                         <!-- Runner Info -->
                         <div>
-                            <strong>{{ p.runner.name }}</strong><br>
+                            <strong>{{ p.name }}</strong><br>
                             <small class="text-muted">
-                                {{ p.date.strftime('%B %d, %Y') }}
+                                {{ p.date }}
                             </small>
                         </div>
 
                         <!-- Confirm Button -->
                         <form method="POST" class="ms-3">
-                            <input type="hidden" name="attendance_id" value="{{ p.id }}">
+                            <input type="hidden" name="runner_name" value="{{ p.name }}">
                             <button class="btn btn-success btn-sm">
                                 Confirm
                             </button>
