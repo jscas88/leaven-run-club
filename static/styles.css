@@ -34,6 +34,29 @@ body {
 .progress-bar {
     background-color: #198754 !important;
 }
+.runner-card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.runner-card-header {
+    background: linear-gradient(90deg, #198754, #20c997);
+    color: white;
+    padding: 10px 15px;
+}
+
+.runner-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
 
 /* ----------------------------------
    DARK MODE
