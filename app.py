@@ -234,6 +234,9 @@ def admin_logout():
 # -----------------------------
 @app.route("/admin/verify", methods=["GET", "POST"])
 def admin_verify():
+
+    print("RUNNERS:", get_runners_from_sheet())
+
     today = date.today()
 
     # Load runners so we can look up names
