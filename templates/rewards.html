@@ -11,26 +11,68 @@
 
             <div class="reward-box text-center m-2">
                 <div class="reward-icon">🍺</div>
-                <div class="reward-label">Every 2 Runs</div>
-                <small class="text-muted">Free Beer</small>
+                <div class="reward-label">2 Runs</div>
+                <small class="text-muted">Beer</small>
+            </div>
+
+            <div class="reward-box text-center m-2">
+                <div class="reward-icon">🍺</div>
+                <div class="reward-label">4 Runs</div>
+                <small class="text-muted">Beer</small>
             </div>
 
             <div class="reward-box text-center m-2">
                 <div class="reward-icon">👕</div>
                 <div class="reward-label">10 Runs</div>
-                <small class="text-muted">Free Shirt</small>
+                <small class="text-muted">T‑Shirt</small>
             </div>
 
             <div class="reward-box text-center m-2">
                 <div class="reward-icon">🍺</div>
-                <div class="reward-label">Every 5 After 10</div>
-                <small class="text-muted">Free Beer</small>
+                <div class="reward-label">11 Runs</div>
+                <small class="text-muted">Beer</small>
             </div>
 
             <div class="reward-box text-center m-2">
-                <div class="reward-icon">📍</div>
+                <div class="reward-icon">🍺</div>
+                <div class="reward-label">13 Runs</div>
+                <small class="text-muted">Beer</small>
+            </div>
+
+            <div class="reward-box text-center m-2">
+                <div class="reward-icon">📎</div>
                 <div class="reward-label">15 Runs</div>
-                <small class="text-muted">Collector Pin</small>
+                <small class="text-muted">Stickers</small>
+            </div>
+
+            <div class="reward-box text-center m-2">
+                <div class="reward-icon">🍺</div>
+                <div class="reward-label">18 Runs</div>
+                <small class="text-muted">Beer Flight</small>
+            </div>
+
+            <div class="reward-box text-center m-2">
+                <div class="reward-icon">🍺</div>
+                <div class="reward-label">20 Runs</div>
+                <small class="text-muted">Beer</small>
+            </div>
+
+            <div class="reward-box text-center m-2">
+                <div class="reward-icon">🍺</div>
+                <div class="reward-label">23 Runs</div>
+                <small class="text-muted">Beer</small>
+            </div>
+
+            <div class="reward-box text-center m-2">
+                <div class="reward-icon">🧲</div>
+                <div class="reward-label">24 Runs</div>
+                <small class="text-muted">Magnet</small>
+            </div>
+
+            <div class="reward-box text-center m-2">
+                <div class="reward-icon">🥨</div>
+                <div class="reward-label">26 Runs</div>
+                <small class="text-muted">Nachos</small>
             </div>
 
         </div>
@@ -43,44 +85,15 @@
 <ul class="list-group">
 {% for r in runners %}
 
-    {# Count verified attendance by name #}
-    {% set total = (attendance | selectattr("name", "equalto", r.name) | list | length) %}
-
-    {# Determine next reward #}
-    {% if total < 10 %}
-        {% set next_reward_runs = 2 - (total % 2) if total % 2 != 0 else 2 %}
-        {% set next_reward = "🍺 Free Beer" %}
-        {% set target = total + next_reward_runs %}
-    {% elif total == 10 %}
-        {% set next_reward_runs = 0 %}
-        {% set next_reward = "👕 Free Shirt" %}
-        {% set target = 10 %}
-    {% elif total == 15 %}
-        {% set next_reward_runs = 0 %}
-        {% set next_reward = "📍 Collector Pin" %}
-        {% set target = 15 %}
-    {% else %}
-        {% set next_reward_runs = 5 - ((total - 10) % 5) if (total - 10) % 5 != 0 else 5 %}
-        {% set next_reward = "🍺 Free Beer" %}
-        {% set target = total + next_reward_runs %}
-    {% endif %}
-
-    {# Progress percentage #}
-    {% if next_reward_runs == 0 %}
-        {% set progress = 100 %}
-    {% else %}
-        {% set progress = ((total / target) * 100) | round(0, 'floor') %}
-    {% endif %}
-
     <li class="list-group-item">
         <div class="d-flex justify-content-between">
             <div>
                 {{ r.emoji }} <strong>{{ r.name }}</strong><br>
-                <small class="text-muted">{{ total }} total runs</small>
+                <small class="text-muted">{{ r.total_runs }} total runs</small>
             </div>
 
             <div class="text-end">
-                <span class="badge bg-primary">{{ next_reward }}</span>
+                <span class="badge bg-primary">{{ r.next_reward.name }}</span>
             </div>
         </div>
 
@@ -88,18 +101,28 @@
         <div class="progress mt-3" style="height: 22px;">
             <div class="progress-bar bg-success fw-bold"
                  role="progressbar"
-                 style="width: {{ progress }}%;">
-                {{ progress }}%
+                 style="width: {{ r.next_reward.progress }}%;">
+                {{ r.next_reward.progress }}%
             </div>
         </div>
 
         <small class="text-muted">
-            {% if next_reward_runs == 0 %}
+            {% if r.next_reward.remaining == 0 %}
                 Reward earned!
             {% else %}
-                {{ next_reward_runs }} more runs until {{ next_reward }}
+                {{ r.next_reward.remaining }} more runs until {{ r.next_reward.name }}
             {% endif %}
         </small>
+
+        <!-- Earned Rewards -->
+        {% if r.earned_rewards %}
+            <div class="mt-2">
+                <strong>Earned:</strong><br>
+                {% for reward in r.earned_rewards %}
+                    <span class="badge bg-secondary">{{ reward }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
     </li>
 
 {% endfor %}
