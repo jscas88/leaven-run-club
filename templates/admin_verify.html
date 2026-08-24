@@ -21,22 +21,18 @@
     <div class="card-body">
         <h4 class="fw-bold mb-3">Pending Check-Ins</h4>
 
-        <form method="POST" action="{{ url_for('clear_pending') }}" class="mb-3">
-            <button class="btn btn-danger btn-sm">Clear All Pending Check-Ins</button>
-        </form>
-
         {% if pending %}
             <ul class="list-group">
                 {% for p in pending %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
 
                         <div>
-                            <strong>{{ p.name }}</strong><br>
+                            <strong>Runner ID:</strong> {{ p.runner_id }}<br>
                             <small class="text-muted">{{ p.date }}</small>
                         </div>
 
-                        <form method="POST" class="ms-3">
-                            <input type="hidden" name="runner_name" value="{{ p.name }}">
+                        <form method="POST" action="{{ url_for('admin_verify') }}" class="ms-3">
+                            <input type="hidden" name="sheet_row" value="{{ p.sheet_row }}">
                             <button class="btn btn-success btn-sm">Confirm</button>
                         </form>
 
@@ -45,36 +41,6 @@
             </ul>
         {% else %}
             <p class="text-muted">No pending check-ins for today.</p>
-        {% endif %}
-    </div>
-</div>
-
-<!-- DUPLICATE RUNNERS -->
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <h4 class="fw-bold mb-3">Duplicate Runners</h4>
-
-        {% if duplicates %}
-            <form method="POST" action="{{ url_for('delete_runners') }}">
-                {% for name, items in duplicates.items() %}
-                    <div class="mb-3 p-2 border rounded bg-light">
-                        <strong>{{ items[0].name }}</strong>
-
-                        {% for r in items %}
-                            <div class="d-flex align-items-center mt-2">
-                                <input type="checkbox" name="delete_ids" value="{{ r.row_id }}">
-                                <span class="ms-2">
-                                    {{ r.name }} — {{ r.phone }} — {{ r.referral }}
-                                </span>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endfor %}
-
-                <button class="btn btn-danger w-100 mt-3">Delete Selected</button>
-            </form>
-        {% else %}
-            <p class="text-muted">No duplicate runners found.</p>
         {% endif %}
     </div>
 </div>
