@@ -66,12 +66,13 @@ def get_runners():
             row += [""] * (len(headers) - len(row))
 
         runners.append({
-            "name": row[0],
-            "phone": row[1],
-            "referral": row[2],
-            "emoji": row[3],
-            "shoe_brand": row[4],
-            "waiver_signed": row[5]
+            "id": int(row[0]),
+            "name": row[1],
+            "phone": row[2],
+            "referral": row[3],
+            "avatar": row[4],
+            "shoe": row[5],
+            "waiver_signed": row[6]
         })
     return runners
 
@@ -90,7 +91,7 @@ def get_attendance():
             row += [""] * (len(headers) - len(row))
 
         attendance.append({
-            "name": row[0],
+            "id": int(row[0]),
             "date": row[1],
             "verified": row[2],
             "reward_date": row[3] if len(row) > 3 else ""
@@ -98,10 +99,9 @@ def get_attendance():
     return attendance
 
 
-
-def add_attendance(name):
+def add_attendance(runner_id):
     today = date.today().strftime("%Y-%m-%d")
-    append_row(ATTENDANCE_WS, [name, today, "No"])   # unverified until admin approves
+    append_row(ATTENDANCE_WS, [runner_id, today, "No"])
 
 
 # -----------------------------
@@ -109,16 +109,16 @@ def add_attendance(name):
 # -----------------------------
 def find_duplicate_runners():
     runners = get_runners()
-    name_map = {}
+    id_map = {}
 
     for r in runners:
-        name = r["name"].strip().lower()
-        if name not in name_map:
-            name_map[name] = []
-        name_map[name].append(r)
+        if r["name"] not in id_map:
+            id_map[r["name"]] = []
+        id_map[r["name"]].append(r)
 
-    duplicates = {name: items for name, items in name_map.items() if len(items) > 1}
+    duplicates = {name: items for name, items in id_map.items() if len(items) > 1}
     return duplicates
+
 
 # -----------------------------
 # WEEKLY ATTENDANCE (SAFE)
@@ -132,7 +132,7 @@ def get_weekly_attendance():
     for a in attendance:
         try:
             d = datetime.strptime(a["date"], "%Y-%m-%d").date()
-            parsed.append({"name": a["name"], "date": d, "verified": a["verified"]})
+            parsed.append({"id": a["id"], "date": d, "verified": a["verified"]})
         except:
             continue
 
@@ -151,7 +151,7 @@ def get_weekly_attendance():
             }
 
         weekly[week_key]["runs"] += 1
-        weekly[week_key]["runners"].add(a["name"])
+        weekly[week_key]["runners"].add(a["id"])
 
         if a["verified"].lower() == "yes":
             weekly[week_key]["verified_runs"] += 1
@@ -190,10 +190,10 @@ def checking():
     attendance = get_attendance()
 
     today = date.today().strftime("%Y-%m-%d")
-    checked_in_today = {a["name"] for a in attendance if a["date"] == today}
+    checked_in_today = {a["id"] for a in attendance if a["date"] == today}
 
     for r in runners:
-        r["checked_in_today"] = r["name"] in checked_in_today
+        r["checked_in_today"] = r["id"] in checked_in_today
 
     return render_template("checking.html", runners=runners)
 
@@ -201,9 +201,9 @@ def checking():
 # -----------------------------
 # CHECK-IN ENDPOINT
 # -----------------------------
-@app.route("/checkin_runner/<string:runner_name>", methods=["POST"])
-def checkin_runner(runner_name):
-    add_attendance(runner_name)
+@app.route("/checkin_runner/<int:runner_id>", methods=["POST"])
+def checkin_runner(runner_id):
+    add_attendance(runner_id)
     return redirect(url_for("rewards"))
 
 
@@ -230,55 +230,55 @@ def admin_logout():
 
 
 # -----------------------------
-# ADMIN VERIFY PAGE
+# ADMIN VERIFY PAGE (ID-BASED)
 # -----------------------------
 @app.route("/admin/verify", methods=["GET", "POST"])
 def admin_verify():
     if not is_admin():
         return redirect(url_for("admin_login"))
 
-    attendance = get_attendance()
+    sheet = get_sheet(ATTENDANCE_WS)
+    rows = sheet.get_all_values()
     today = date.today().strftime("%Y-%m-%d")
 
-    pending = [a for a in attendance if a["date"] == today and a["verified"] != "Yes"]
+    pending = []
+    for idx, row in enumerate(rows[1:], start=2):
+        runner_id, row_date, verified = row[0], row[1], row[2]
+        if row_date == today and verified != "Yes":
+            pending.append({
+                "row_index": idx,
+                "id": int(runner_id),
+                "date": row_date
+            })
+
     duplicates = find_duplicate_runners()
 
     if request.method == "POST":
-        name = request.form.get("runner_name")
+        row_index = int(request.form.get("row_index"))
 
-        sheet = get_sheet(ATTENDANCE_WS)
-        rows = sheet.get_all_values()
+        sheet.update_cell(row_index, 3, "Yes")
 
-        for idx, row in enumerate(rows):
-            if idx == 0:
-                continue
+        attendance = get_attendance()
+        runner_id = int(rows[row_index - 1][0])
 
-            if row[0] == name and row[1] == today:
-                # Mark run as verified
-                sheet.update_cell(idx + 1, 3, "Yes")
+        total_runs = sum(
+            1 for a in attendance
+            if a["id"] == runner_id and a["verified"] == "Yes"
+        )
 
-                # Check if this run earns a reward
-                attendance = get_attendance()
-                total_runs = sum(
-                    1 for a in attendance
-                    if a["name"] == name and a["verified"] == "Yes"
-                )
+        earned, next_reward = get_runner_rewards(total_runs)
 
-                earned, next_reward = get_runner_rewards(total_runs)
-
-                # If a new reward was earned today, store the date
-                if earned:
-                    last_reward = earned[-1]
-                    sheet.update_cell(idx + 1, 4, f"{last_reward} earned on {today}")
-
-                break
+        if earned:
+            last_reward = earned[-1]
+            sheet.update_cell(row_index, 4, f"{last_reward} earned on {today}")
 
         return redirect(url_for("admin_verify"))
 
     return render_template("admin_verify.html", pending=pending, duplicates=duplicates)
 
+
 # -----------------------------
-# ADMIN CLEAR ALL PENDING (SAFE)
+# ADMIN CLEAR ALL PENDING
 # -----------------------------
 @app.route("/admin/clear_pending", methods=["POST"])
 def clear_pending():
@@ -288,17 +288,15 @@ def clear_pending():
     sheet = get_sheet(ATTENDANCE_WS)
     rows = sheet.get_all_values()
 
-    # Prevent crash if sheet is empty or only header exists
     if not rows or len(rows) == 1:
         return redirect(url_for("admin_verify"))
 
     today = date.today().strftime("%Y-%m-%d")
 
-    new_rows = [rows[0]]  # header
+    new_rows = [rows[0]]
 
     for row in rows[1:]:
-        name, row_date, verified = row[0], row[1], row[2]
-
+        runner_id, row_date, verified = row[0], row[1], row[2]
         if row_date != today or verified == "Yes":
             new_rows.append(row)
 
@@ -318,14 +316,13 @@ def admin_dashboard():
 
     weekly = get_weekly_attendance()
 
-    # Add reward info for each runner
     runners = get_runners()
     attendance = get_attendance()
 
     for r in runners:
         total_runs = sum(
             1 for a in attendance
-            if a["name"] == r["name"] and a["verified"] == "Yes"
+            if a["id"] == r["id"] and a["verified"] == "Yes"
         )
         r["total_runs"] = total_runs
 
@@ -342,7 +339,9 @@ def admin_dashboard():
     return render_template("admin_dashboard.html", weekly=sorted_weeks, runners=runners)
 
 
-
+# -----------------------------
+# DELETE RUNNERS
+# -----------------------------
 @app.route("/admin/delete_runners", methods=["POST"])
 def delete_runners():
     if not is_admin():
@@ -353,8 +352,7 @@ def delete_runners():
     sheet = get_sheet(RUNNERS_WS)
     rows = sheet.get_all_values()
 
-    # Build new sheet without deleted rows
-    new_rows = [rows[0]]  # header
+    new_rows = [rows[0]]
 
     for idx, row in enumerate(rows[1:], start=2):
         row_id = str(idx)
@@ -365,8 +363,6 @@ def delete_runners():
     sheet.update("A1", new_rows)
 
     return redirect(url_for("admin_verify"))
-
-
 
 
 # -----------------------------
@@ -390,14 +386,11 @@ REWARD_TIERS = [
 # -----------------------------
 # Streak Calculator
 # -----------------------------
-from datetime import datetime, timedelta
-
-def calculate_streak(name, attendance):
-    # Extract verified runs for this runner
+def calculate_streak(runner_id, attendance):
     dates = sorted([
         datetime.strptime(a["date"], "%Y-%m-%d")
         for a in attendance
-        if a["name"] == name and a["verified"] == "Yes"
+        if a["id"] == runner_id and a["verified"] == "Yes"
     ])
 
     if not dates:
@@ -411,7 +404,6 @@ def calculate_streak(name, attendance):
             break
 
     return streak
-
 
 
 # -----------------------------
@@ -432,7 +424,6 @@ def get_runner_rewards(total_runs):
                 "progress": int((total_runs / runs_required) * 100)
             }
 
-    # If all rewards earned
     if next_reward is None:
         next_reward = {
             "runs_required": None,
@@ -444,7 +435,6 @@ def get_runner_rewards(total_runs):
     return earned, next_reward
 
 
-
 # -----------------------------
 # ADD RUNNER PAGE
 # -----------------------------
@@ -454,12 +444,16 @@ def runners_page():
     runners = get_runners()
 
     if form.validate_on_submit():
+        rows = get_all_rows(RUNNERS_WS)
+        new_id = len(rows)
+
         append_row(RUNNERS_WS, [
+            new_id,
             form.name.data,
             form.phone.data,
             form.referral.data,
-            form.emoji.data,
-            form.shoe_brand.data,
+            form.avatar.data,
+            form.shoe.data,
             form.waiver_signed.data
         ])
 
@@ -478,23 +472,19 @@ def rewards():
     attendance = get_attendance()
 
     for r in runners:
-        # Total verified runs
         total_runs = sum(
             1 for a in attendance
-            if a["name"] == r["name"] and a["verified"] == "Yes"
+            if a["id"] == r["id"] and a["verified"] == "Yes"
         )
         r["total_runs"] = total_runs
 
-        # Streak (optional)
-        r["streak"] = calculate_streak(r["name"], attendance)
+        r["streak"] = calculate_streak(r["id"], attendance)
 
-        # Rewards
         earned, next_reward = get_runner_rewards(total_runs)
         r["earned_rewards"] = earned
         r["next_reward"] = next_reward
 
     return render_template("rewards.html", runners=runners)
-
 
 
 # -----------------------------
@@ -511,4 +501,3 @@ def clear_new_runner_flag():
 # -----------------------------
 if __name__ == "__main__":
     app.run(debug=True)
-
