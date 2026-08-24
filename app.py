@@ -234,47 +234,48 @@ def admin_logout():
 # -----------------------------
 @app.route("/admin/verify", methods=["GET", "POST"])
 def admin_verify():
-    if not is_admin():
-        return redirect(url_for("admin_login"))
+    today = date.today()
 
-    sheet = get_sheet(ATTENDANCE_WS)
-    rows = sheet.get_all_values()
-    today = date.today().strftime("%Y-%m-%d")
+    # Load runners so we can look up names
+    runners = get_runners_from_sheet()
+
+    # Load attendance sheet (skip header)
+    rows = ATTENDANCE_WS.get_all_values()[1:]
 
     pending = []
-    for idx, row in enumerate(rows[1:], start=2):
-        runner_id, row_date, verified = row[0], row[1], row[2]
-        if row_date == today and verified != "Yes":
+    for idx, row in enumerate(rows, start=2):  # Google Sheets row index
+        if len(row) < 3:
+            continue
+
+        try:
+            runner_id = int(row[0])
+        except ValueError:
+            continue
+
+        row_date = row[1]
+        verified = row[2].strip().lower() == "yes"
+
+        if row_date == today.isoformat() and not verified:
+            # LOOK UP RUNNER NAME BY ID
+            name = next((r["name"] for r in runners if r["id"] == runner_id), "Unknown")
+
             pending.append({
-                "row_index": idx,
-                "id": int(runner_id),
+                "sheet_row": idx,
+                "runner_id": runner_id,
+                "name": name,
                 "date": row_date
             })
 
-    duplicates = find_duplicate_runners()
-
+    # Handle confirmation
     if request.method == "POST":
-        row_index = int(request.form.get("row_index"))
+        sheet_row = int(request.form.get("sheet_row"))
 
-        sheet.update_cell(row_index, 3, "Yes")
-
-        attendance = get_attendance()
-        runner_id = int(rows[row_index - 1][0])
-
-        total_runs = sum(
-            1 for a in attendance
-            if a["id"] == runner_id and a["verified"] == "Yes"
-        )
-
-        earned, next_reward = get_runner_rewards(total_runs)
-
-        if earned:
-            last_reward = earned[-1]
-            sheet.update_cell(row_index, 4, f"{last_reward} earned on {today}")
+        ATTENDANCE_WS.update_cell(sheet_row, 3, "Yes")              # Verified
+        ATTENDANCE_WS.update_cell(sheet_row, 4, today.isoformat())  # Reward date
 
         return redirect(url_for("admin_verify"))
 
-    return render_template("admin_verify.html", pending=pending, duplicates=duplicates)
+    return render_template("admin_verify.html", pending=pending)
 
 
 # -----------------------------
