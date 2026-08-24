@@ -368,22 +368,24 @@ def rewards():
     runners = get_runners()
     attendance = get_attendance()
 
-    verified_attendance = [
-        a for a in attendance
-        if str(a["verified"]).strip().lower() == "yes"
-    ]
+    for r in runners:
+        # Total verified runs
+        total_runs = sum(
+            1 for a in attendance
+            if a["name"] == r["name"] and a["verified"] == "Yes"
+        )
+        r["total_runs"] = total_runs
 
-    pending_attendance = [
-        a for a in attendance
-        if str(a["verified"]).strip().lower() != "yes"
-    ]
+        # Optional streak (can set to 0 if not implemented)
+        r["streak"] = 0
 
-    return render_template(
-        "rewards.html",
-        runners=runners,
-        attendance=verified_attendance,
-        pending_attendance=pending_attendance
-    )
+        # Rewards
+        earned, next_reward = get_runner_rewards(total_runs)
+        r["earned_rewards"] = earned
+        r["next_reward"] = next_reward
+
+    return render_template("rewards.html", runners=runners)
+
 
 
 # -----------------------------
