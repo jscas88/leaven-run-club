@@ -234,51 +234,42 @@ def admin_logout():
 # -----------------------------
 @app.route("/admin/verify", methods=["GET", "POST"])
 def admin_verify():
+    if not is_admin():
+        return redirect(url_for("admin_login"))
 
-    print("RUNNERS:", get_runners_from_sheet())
+    today_str = date.today().strftime("%Y-%m-%d")
 
-    today = date.today()
-
-    # Load runners so we can look up names
-    runners = get_runners_from_sheet()
-
-    # Load attendance sheet (skip header)
-    rows = ATTENDANCE_WS.get_all_values()[1:]
+    runners = get_runners()
+    attendance = get_attendance()
 
     pending = []
-    for idx, row in enumerate(rows, start=2):  # Google Sheets row index
-        if len(row) < 3:
-            continue
+    for idx, a in enumerate(attendance, start=2):  # row index in sheet (header is row 1)
+        row_date = a["date"]
+        verified = a["verified"].strip().lower() == "yes"
 
-        try:
-            runner_id = int(row[0])
-        except ValueError:
-            continue
-
-        row_date = row[1]
-        verified = row[2].strip().lower() == "yes"
-
-        if row_date == today.isoformat() and not verified:
-            # LOOK UP RUNNER NAME BY ID
-            name = next((r["name"] for r in runners if r["id"] == runner_id), "Unknown")
+        if row_date == today_str and not verified:
+            # look up runner name by id
+            name = next((r["name"] for r in runners if r["id"] == a["id"]), "Unknown")
 
             pending.append({
                 "sheet_row": idx,
-                "runner_id": runner_id,
+                "runner_id": a["id"],
                 "name": name,
                 "date": row_date
             })
 
-    # Handle confirmation
     if request.method == "POST":
         sheet_row = int(request.form.get("sheet_row"))
 
-        ATTENDANCE_WS.update_cell(sheet_row, 3, "Yes")              # Verified
-        ATTENDANCE_WS.update_cell(sheet_row, 4, today.isoformat())  # Reward date
+        sheet = get_sheet(ATTENDANCE_WS)
+        # col 3 = verified, col 4 = reward_date
+        sheet.update_cell(sheet_row, 3, "Yes")
+        sheet.update_cell(sheet_row, 4, today_str)
 
         return redirect(url_for("admin_verify"))
 
     return render_template("admin_verify.html", pending=pending)
+
 
 
 # -----------------------------
