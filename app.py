@@ -304,13 +304,29 @@ def admin_dashboard():
 
     weekly = get_weekly_attendance()
 
+    # Add reward info for each runner
+    runners = get_runners()
+    attendance = get_attendance()
+
+    for r in runners:
+        total_runs = sum(
+            1 for a in attendance
+            if a["name"] == r["name"] and a["verified"] == "Yes"
+        )
+        r["total_runs"] = total_runs
+
+        earned, next_reward = get_runner_rewards(total_runs)
+        r["earned_rewards"] = earned
+        r["next_reward"] = next_reward
+
     sorted_weeks = dict(sorted(
         weekly.items(),
         key=lambda x: x[1]["week_start"],
         reverse=True
     ))
 
-    return render_template("admin_dashboard.html", weekly=sorted_weeks)
+    return render_template("admin_dashboard.html", weekly=sorted_weeks, runners=runners)
+
 
 
 @app.route("/admin/delete_runners", methods=["POST"])
