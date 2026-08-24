@@ -239,8 +239,9 @@ def admin_verify():
     today = date.today().strftime("%Y-%m-%d")
 
     pending = [a for a in attendance if a["date"] == today and a["verified"] != "Yes"]
-
-    # Compute duplicates here
+# -----------------------------
+# Duplicates
+# -----------------------------
     duplicates = find_duplicate_runners()
 
     if request.method == "POST":
@@ -336,6 +337,84 @@ def delete_runners():
     return redirect(url_for("admin_verify"))
 
 
+
+
+# -----------------------------
+# Reward Tier Table
+# -----------------------------
+REWARD_TIERS = [
+    (2, "🍺 Beer"),
+    (4, "🍺 Beer"),
+    (10, "👕 T-Shirt"),
+    (11, "🍺 Beer"),
+    (13, "🍺 Beer"),
+    (15, "📎 Stickers"),
+    (18, "🍺 Beer Flight"),
+    (20, "🍺 Beer"),
+    (23, "🍺 Beer"),
+    (24, "🧲 Magnet"),
+    (26, "🥨 Nachos")
+]
+
+
+# -----------------------------
+# Streak Calculator
+# -----------------------------
+from datetime import datetime, timedelta
+
+def calculate_streak(name, attendance):
+    # Extract verified runs for this runner
+    dates = sorted([
+        datetime.strptime(a["date"], "%Y-%m-%d")
+        for a in attendance
+        if a["name"] == name and a["verified"] == "Yes"
+    ])
+
+    if not dates:
+        return 0
+
+    streak = 1
+    for i in range(len(dates) - 1, 0, -1):
+        if dates[i] - dates[i - 1] == timedelta(days=1):
+            streak += 1
+        else:
+            break
+
+    return streak
+
+
+
+# -----------------------------
+# Reward Engine
+# -----------------------------
+def get_runner_rewards(total_runs):
+    earned = []
+    next_reward = None
+
+    for runs_required, reward_name in REWARD_TIERS:
+        if total_runs >= runs_required:
+            earned.append(reward_name)
+        elif next_reward is None:
+            next_reward = {
+                "runs_required": runs_required,
+                "name": reward_name,
+                "remaining": runs_required - total_runs,
+                "progress": int((total_runs / runs_required) * 100)
+            }
+
+    # If all rewards earned
+    if next_reward is None:
+        next_reward = {
+            "runs_required": None,
+            "name": "All rewards earned!",
+            "remaining": 0,
+            "progress": 100
+        }
+
+    return earned, next_reward
+
+
+
 # -----------------------------
 # ADD RUNNER PAGE
 # -----------------------------
@@ -376,8 +455,8 @@ def rewards():
         )
         r["total_runs"] = total_runs
 
-        # Optional streak (can set to 0 if not implemented)
-        r["streak"] = 0
+        # Streak (optional)
+        r["streak"] = calculate_streak(r["name"], attendance)
 
         # Rewards
         earned, next_reward = get_runner_rewards(total_runs)
