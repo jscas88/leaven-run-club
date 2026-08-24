@@ -60,6 +60,7 @@ class AddRunnerForm(FlaskForm):
             ("newbalance", "New Balance"),
             ("mizuno", "Mizuno"),
             ("oncloud", "On Cloud"),
+            ("altra", "Altra"),                           
             ("other", "Other")
         ]
     )
