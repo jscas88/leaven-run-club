@@ -254,8 +254,24 @@ def admin_verify():
             if idx == 0:
                 continue
             if row[0] == name and row[1] == today:
-                sheet.update_cell(idx + 1, 3, "Yes")
-                break
+    sheet.update_cell(idx + 1, 3, "Yes")
+
+    # Check if this run earns a reward
+    attendance = get_attendance()
+    total_runs = sum(
+        1 for a in attendance
+        if a["name"] == name and a["verified"] == "Yes"
+    )
+
+    earned, next_reward = get_runner_rewards(total_runs)
+
+    # If a new reward was earned today, store the date
+    if earned:
+        last_reward = earned[-1]  # most recent reward
+        sheet.update_cell(idx + 1, 4, f"{last_reward} earned on {today}")
+
+    break
+
 
         return redirect(url_for("admin_verify"))
 
