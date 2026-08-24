@@ -54,9 +54,15 @@
                 {% for reward in r.earned_rewards %}
                     <span class="badge bg-success me-1">
     {{ reward }}
-    {% if r.reward_dates and reward in r.reward_dates %}
-        <small class="text-muted">({{ r.reward_dates[reward] }})</small>
-    {% endif %}
+    {% for reward in r.earned_rewards %}
+        <span class="badge bg-success me-1">
+             {{ reward }}
+                {% if r.reward_dates and reward in r.reward_dates %}
+                    <small class="text-muted">({{ r.reward_dates[reward] }})</small>
+                {% endif %}
+        </span>
+    {% endfor %}
+
 </span>
 
                 {% endfor %}

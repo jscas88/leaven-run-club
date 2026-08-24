@@ -92,9 +92,11 @@ def get_attendance():
         attendance.append({
             "name": row[0],
             "date": row[1],
-            "verified": row[2]
+            "verified": row[2],
+            "reward_date": row[3] if len(row) > 3 else ""
         })
     return attendance
+
 
 
 def add_attendance(name):
@@ -244,37 +246,37 @@ def admin_verify():
 # -----------------------------
     duplicates = find_duplicate_runners()
 
-    if request.method == "POST":
-    name = request.form.get("runner_name")
+        if request.method == "POST":
+            name = request.form.get("runner_name")
 
-    sheet = get_sheet(ATTENDANCE_WS)
-    rows = sheet.get_all_values()
+            sheet = get_sheet(ATTENDANCE_WS)
+            rows = sheet.get_all_values()
 
-    for idx, row in enumerate(rows):
-        if idx == 0:
-            continue
+        for idx, row in enumerate(rows):
+            if idx == 0:
+                continue
 
-        if row[0] == name and row[1] == today:
-            # Mark run as verified
-            sheet.update_cell(idx + 1, 3, "Yes")
+            if row[0] == name and row[1] == today:
+                # Mark run as verified
+                sheet.update_cell(idx + 1, 3, "Yes")
 
-            # Check if this run earns a reward
-            attendance = get_attendance()
-            total_runs = sum(
-                1 for a in attendance
-                if a["name"] == name and a["verified"] == "Yes"
-            )
+                # Check if this run earns a reward
+                attendance = get_attendance()
+                total_runs = sum(
+                    1 for a in attendance
+                    if a["name"] == name and a["verified"] == "Yes"
+                )
 
-            earned, next_reward = get_runner_rewards(total_runs)
+                earned, next_reward = get_runner_rewards(total_runs)
 
-            # If a new reward was earned today, store the date
-            if earned:
-                last_reward = earned[-1]  # most recent reward
-                sheet.update_cell(idx + 1, 4, f"{last_reward} earned on {today}")
+                # If a new reward was earned today, store the date
+                if earned:
+                    last_reward = earned[-1]  # most recent reward
+                    sheet.update_cell(idx + 1, 4, f"{last_reward} earned on {today}")
 
-            break
+                break
 
-    return redirect(url_for("admin_verify"))
+        return redirect(url_for("admin_verify"))
 
     return render_template("admin_verify.html", pending=pending, duplicates=duplicates)
 
