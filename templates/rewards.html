@@ -85,45 +85,60 @@
 <ul class="list-group">
 {% for r in runners %}
 
-    <li class="list-group-item">
-        <div class="d-flex justify-content-between">
-            <div>
-                {{ r.emoji }} <strong>{{ r.name }}</strong><br>
-                <small class="text-muted">{{ r.total_runs }} total runs</small>
-            </div>
-
-            <div class="text-end">
-                <span class="badge bg-primary">{{ r.next_reward.name }}</span>
-            </div>
+    <li class="list-group-item p-0 mb-3" style="border: none;">
+    <div class="card mb-0 shadow-sm runner-card">
+        <div class="card-header d-flex justify-content-between align-items-center runner-card-header">
+            <span class="runner-name">{{ r.emoji }} {{ r.name }}</span>
+            <span class="badge bg-light text-dark fw-bold">{{ r.next_reward.name }}</span>
         </div>
 
-        <!-- Progress Bar -->
-        <div class="progress mt-3" style="height: 22px;">
-            <div class="progress-bar bg-success fw-bold"
-                 role="progressbar"
-                 style="width: {{ r.next_reward.progress }}%;">
-                {{ r.next_reward.progress }}%
-            </div>
-        </div>
+        <div class="card-body">
 
-        <small class="text-muted">
-            {% if r.next_reward.remaining == 0 %}
-                Reward earned!
-            {% else %}
-                {{ r.next_reward.remaining }} more runs until {{ r.next_reward.name }}
+            <!-- Stats Row -->
+            <div class="d-flex justify-content-between mb-2">
+                <div>
+                    <small class="text-muted">Total Runs</small><br>
+                    <strong>{{ r.total_runs }}</strong>
+                </div>
+
+                <div class="text-end">
+                    <small class="text-muted">Streak</small><br>
+                    <strong>{{ r.streak }} days</strong>
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <small class="text-muted">Progress toward {{ r.next_reward.name }}</small>
+            <div class="progress mt-1" style="height: 18px;">
+                <div class="progress-bar bg-success fw-bold"
+                     role="progressbar"
+                     style="width: {{ r.next_reward.progress }}%;">
+                    {{ r.next_reward.progress }}%
+                </div>
+            </div>
+
+            <small class="text-muted">
+                {% if r.next_reward.remaining == 0 %}
+                    Reward earned!
+                {% else %}
+                    {{ r.next_reward.remaining }} more runs to go
+                {% endif %}
+            </small>
+
+            <!-- Earned Rewards -->
+            {% if r.earned_rewards %}
+                <div class="mt-3">
+                    <small class="text-muted">Earned Rewards</small><br>
+                    {% for reward in r.earned_rewards %}
+                        <span class="badge bg-secondary me-1">{{ reward }}</span>
+                    {% endfor %}
+                </div>
             {% endif %}
-        </small>
 
-        <!-- Earned Rewards -->
-        {% if r.earned_rewards %}
-            <div class="mt-2">
-                <strong>Earned:</strong><br>
-                {% for reward in r.earned_rewards %}
-                    <span class="badge bg-secondary">{{ reward }}</span>
-                {% endfor %}
-            </div>
-        {% endif %}
-    </li>
+        </div>
+    </div>
+</li>
+
 
 {% endfor %}
 </ul>
