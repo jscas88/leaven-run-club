@@ -19,9 +19,9 @@ class AddRunnerForm(FlaskForm):
         validators=[Optional()]
     )
 
-    # Emoji avatar
-    emoji = SelectField(
-        "Choose an Emoji Avatar",
+    # Avatar (replaces emoji)
+    avatar = SelectField(
+        "Choose an Avatar",
         choices=[
             ("🏃", "🏃 Runner"),
             ("🏃‍♀️", "🏃‍♀️ Runner (Female)"),
@@ -47,8 +47,8 @@ class AddRunnerForm(FlaskForm):
         validators=[Optional()]
     )
 
-    # Shoe brand
-    shoe_brand = SelectField(
+    # Shoe (replaces shoe_brand)
+    shoe = SelectField(
         "Shoe Brand",
         choices=[
             ("nike", "Nike"),
@@ -60,7 +60,7 @@ class AddRunnerForm(FlaskForm):
             ("newbalance", "New Balance"),
             ("mizuno", "Mizuno"),
             ("oncloud", "On Cloud"),
-            ("altra", "Altra"),                           
+            ("altra", "Altra"),
             ("other", "Other")
         ]
     )

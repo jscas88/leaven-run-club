@@ -30,7 +30,7 @@
                     <p class="mb-1"><strong>Verified:</strong> {{ w.verified_runs }}</p>
                     <p class="mb-1"><strong>Pending:</strong> {{ w.pending_runs }}</p>
 
-                    <p class="mb-1"><strong>Runners:</strong>
+                    <p class="mb-1"><strong>Runner IDs:</strong>
                         {{ w.runners | join(", ") }}
                     </p>
                 </div>
@@ -46,36 +46,34 @@
 <ul class="list-group">
 {% for r in runners %}
     <li class="list-group-item">
-        <strong>{{ r.name }}</strong> — {{ r.total_runs }} verified runs
 
+        <!-- Runner Header -->
+        <strong>{{ r.name }}</strong>  
+        <span class="text-muted"> (ID #{{ r.id }})</span>
+        — {{ r.total_runs }} verified runs
+
+        <!-- Earned Rewards -->
         {% if r.earned_rewards %}
             <div class="mt-2">
                 <small class="text-muted">Earned:</small><br>
+
                 {% for reward in r.earned_rewards %}
                     <span class="badge bg-success me-1">
-    {{ reward }}
-    {% for reward in r.earned_rewards %}
-        <span class="badge bg-success me-1">
-             {{ reward }}
-                {% if r.reward_dates and reward in r.reward_dates %}
-                    <small class="text-muted">({{ r.reward_dates[reward] }})</small>
-                {% endif %}
-        </span>
-    {% endfor %}
-
-</span>
-
+                        {{ reward }}
+                    </span>
                 {% endfor %}
             </div>
         {% else %}
             <small class="text-muted">No rewards earned yet</small>
         {% endif %}
 
+        <!-- Next Reward -->
         <div class="mt-2">
             <small class="text-muted">
                 Next: {{ r.next_reward.name }} ({{ r.next_reward.remaining }} runs left)
             </small>
         </div>
+
     </li>
 {% endfor %}
 </ul>

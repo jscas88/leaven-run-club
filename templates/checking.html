@@ -10,9 +10,9 @@
     <div class="col-6 col-md-4 col-lg-3">
         <div class="card shadow-sm p-3 text-center">
 
-            <!-- Emoji -->
+            <!-- Avatar -->
             <div style="font-size: 42px; line-height: 1;">
-                {{ r.emoji if r.emoji else "🏃" }}
+                {{ r.avatar if r.avatar else "🏃" }}
             </div>
 
             <!-- Name -->
@@ -27,9 +27,9 @@
                 {% endif %}
             </p>
 
-            <!-- Shoe Brand Logo -->
-            {% if r.shoe_brand and r.shoe_brand != "other" %}
-                <img src="{{ url_for('static', filename='logos/' + r.shoe_brand + '.png') }}"
+            <!-- Shoe Logo -->
+            {% if r.shoe and r.shoe != "other" %}
+                <img src="{{ url_for('static', filename='logos/' + r.shoe + '.png') }}"
                      style="width: 40px; height: 40px; object-fit: contain; margin-bottom: 8px;">
             {% endif %}
 
@@ -39,16 +39,15 @@
             {% endif %}
 
             <!-- Check-In Button -->
-            <form method="POST" action="{{ url_for('checkin_runner', runner_name=r.name) }}">
+            <form method="POST" action="{{ url_for('checkin_runner', runner_id=r.id) }}">
                 <button class="btn {% if r.checked_in_today %}btn-secondary{% else %}btn-primary{% endif %} w-100 mt-2">
-                   {% if r.checked_in_today %}
+                    {% if r.checked_in_today %}
                         Checked In
                     {% else %}
                         Check In
                     {% endif %}
                 </button>
             </form>
-
 
         </div>
     </div>

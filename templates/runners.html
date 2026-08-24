@@ -31,13 +31,13 @@
             </div>
 
             <div class="mb-3">
-                {{ form.emoji.label }}
-                {{ form.emoji(class="form-control form-control-lg") }}
+                {{ form.avatar.label }}
+                {{ form.avatar(class="form-control form-control-lg") }}
             </div>
 
             <div class="mb-3">
-                {{ form.shoe_brand.label }}
-                {{ form.shoe_brand(class="form-control form-control-lg") }}
+                {{ form.shoe.label }}
+                {{ form.shoe(class="form-control form-control-lg") }}
             </div>
 
             <!-- Hidden waiver field (set by modal JS) -->
@@ -59,10 +59,11 @@
     <table class="table table-striped table-hover align-middle">
         <thead class="table-dark">
             <tr>
+                <th>ID</th>
                 <th>Runner</th>
                 <th>Phone</th>
                 <th>Referral</th>
-                <th>Shoe Brand</th>
+                <th>Shoe</th>
                 <th>Waiver</th>
             </tr>
         </thead>
@@ -71,9 +72,11 @@
             {% for r in runners %}
             <tr>
 
+                <td>{{ r.id }}</td>
+
                 <td>
                     <span style="font-size:26px; margin-right:8px;">
-                        {{ r.emoji if r.emoji else "🏃" }}
+                        {{ r.avatar if r.avatar else "🏃" }}
                     </span>
                     {{ r.name }}
                 </td>
@@ -89,8 +92,8 @@
                 <td>{{ r.referral }}</td>
 
                 <td>
-                    {% if r.shoe_brand and r.shoe_brand != "other" %}
-                        <img src="{{ url_for('static', filename='logos/' + r.shoe_brand + '.png') }}"
+                    {% if r.shoe and r.shoe != "other" %}
+                        <img src="{{ url_for('static', filename='logos/' + r.shoe + '.png') }}"
                              style="width:32px; height:32px; object-fit:contain;">
                     {% else %}
                         —
