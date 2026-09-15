@@ -180,6 +180,28 @@ def index():
         date=date
     )
 
+# -----------------------------
+# Streak Leaderboard
+# -----------------------------
+@app.route("/")
+def index():
+    runners = get_all_runners()  # however you're loading them
+
+    # Sort runners by streak descending
+    streak_leaderboard = sorted(
+        [r for r in runners if r.streak > 0],
+        key=lambda x: x.streak,
+        reverse=True
+    )
+
+    # Limit to top 5
+    streak_leaderboard = streak_leaderboard[:5]
+
+    return render_template(
+        "index.html",
+        streak_leaderboard=streak_leaderboard,
+        runners=runners
+    )
 
 # -----------------------------
 # CHECK-IN PAGE

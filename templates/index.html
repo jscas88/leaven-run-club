@@ -15,6 +15,32 @@
         <div id="countdown" class="fs-3 fw-bold"></div>
     </div>
 </div>
+<h2 class="mb-3">🔥 Streak Leaderboard</h2>
+
+<div class="row g-3 mb-4">
+    {% if streak_leaderboard %}
+        {% for r in streak_leaderboard %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card p-3 shadow-sm">
+
+                <h4>
+                    <span style="font-size:28px; margin-right:8px;">
+                        {{ r.emoji if r.emoji else "🏃" }}
+                    </span>
+                    {{ r.name }}
+                </h4>
+
+                <p class="text-success fw-bold mb-1">
+                    🔥 {{ r.streak }}‑day streak
+                </p>
+
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-muted">No active streaks yet.</p>
+    {% endif %}
+</div>
 
 <!-- 4-WEEK CALENDAR -->
 <div class="card shadow-sm mb-4">
