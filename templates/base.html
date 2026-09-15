@@ -8,44 +8,13 @@
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- YOUR THEME (this was missing) -->
+    <!-- Theme -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 
     <style>
-        .menu-btn {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            z-index: 3001;
-            font-size: 1.9rem;
-            cursor: pointer;
-            transition: transform 0.2s ease;
+        body {
+            padding-top: 80px; /* Prevent content from hiding behind navbar */
         }
-        .menu-btn:hover { transform: scale(1.15); }
-
-        .menu-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.45);
-            opacity: 0; visibility: hidden;
-            transition: opacity 0.3s ease;
-            z-index: 3000;
-        }
-        .menu-overlay.show { opacity: 1; visibility: visible; }
-
-        .menu-panel {
-            position: fixed;
-            top: 0; left: 0;
-            width: 240px; height: 100%;
-            background: #fff;
-            box-shadow: 3px 0 12px rgba(0,0,0,0.25);
-            padding: 25px 20px;
-            transform: translateX(-260px);
-            transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-            z-index: 3002;
-        }
-        .menu-panel.open { transform: translateX(0); }
     </style>
 
     {% block head %}{% endblock %}
@@ -53,28 +22,54 @@
 
 <body class="bg-light">
 
-    <div class="menu-btn" onclick="toggleMenu()">☰</div>
-    <div id="menuOverlay" class="menu-overlay" onclick="toggleMenu()"></div>
+    <!-- FIXED TOP NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
+        <div class="container-fluid">
 
-    <div id="menuPanel" class="menu-panel">
-        <h4>Menu</h4>
-        <hr>
-        <a href="{{ url_for('index') }}" class="d-block mb-2">🏠 Home</a>
-        <a href="{{ url_for('checking') }}" class="d-block mb-2">✔ Check-In</a>
-        <a href="{{ url_for('runners_page') }}" class="d-block mb-2">➕ Add Runner</a>
-        <a href="{{ url_for('rewards') }}" class="d-block mb-2">🏅 Rewards</a>
-    </div>
+            <!-- Logo -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='logo.png') }}" 
+                     style="height:40px; margin-right:10px;">
+                Leaven Run Club
+            </a>
 
-    <div class="text-center mt-4 mb-3">
-        <a href="{{ url_for('admin_verify') }}">
-            <img src="{{ url_for('static', filename='logo.png') }}" style="max-width: 140px; cursor:pointer;">
-        </a>
-    </div>
+            <!-- Mobile toggle -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
+            <!-- Menu items -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">🏠 Home</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('checking') }}">✔ Check-In</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('runners_page') }}">➕ Add Runner</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('rewards') }}">🏅 Rewards</a>
+                    </li>
+
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
     <div class="container py-4">
         {% block content %}{% endblock %}
     </div>
 
+    <!-- WAIVER MODAL -->
     <div class="modal fade" id="waiverModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -89,18 +84,10 @@
       </div>
     </div>
 
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-    function toggleMenu() {
-        const panel = document.getElementById("menuPanel");
-        const overlay = document.getElementById("menuOverlay");
-        const open = panel.classList.contains("open");
-        panel.classList.toggle("open", !open);
-        overlay.classList.toggle("show", !open);
-    }
-    </script>
-
+    <!-- Waiver Logic -->
     <script>
     document.addEventListener("DOMContentLoaded", function () {
         if (!localStorage.getItem("waiverSigned")) {
@@ -111,6 +98,7 @@
     });
     </script>
 
+    <!-- Page Loaded Animation -->
     <script>
     window.addEventListener("load", () => {
         document.body.classList.add("page-loaded");
