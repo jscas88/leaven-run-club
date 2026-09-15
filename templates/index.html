@@ -31,7 +31,8 @@
                 </h4>
 
                 <p class="text-success fw-bold mb-1">
-                    🔥 {{ r.streak }}‑day streak
+                🔥 {{ r.streak }}‑week streak{% if r.streak != 1 %}s{% endif %}
+
                 </p>
 
             </div>
