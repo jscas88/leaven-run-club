@@ -171,37 +171,29 @@ def index():
     fridays = [d for week in weeks for d in week if d.weekday() == 4]
     next_run_ts = int(next_run.timestamp() * 1000)
 
+    runners = get_runners()
+    attendance = get_attendance()
+
+    # Add streaks
+    for r in runners:
+        r["streak"] = calculate_streak(r["id"], attendance)
+
+    # Leaderboard
+    streak_leaderboard = sorted(
+        [r for r in runners if r["streak"] > 0],
+        key=lambda x: x["streak"],
+        reverse=True
+    )[:5]
+
     return render_template(
         "index.html",
         next_run=next_run,
         next_run_ts=next_run_ts,
         weeks=weeks,
         fridays=fridays,
-        date=date
+        streak_leaderboard=streak_leaderboard
     )
 
-# -----------------------------
-# Streak Leaderboard
-# -----------------------------
-@app.route("/")
-def index():
-    runners = get_all_runners()  # however you're loading them
-
-    # Sort runners by streak descending
-    streak_leaderboard = sorted(
-        [r for r in runners if r.streak > 0],
-        key=lambda x: x.streak,
-        reverse=True
-    )
-
-    # Limit to top 5
-    streak_leaderboard = streak_leaderboard[:5]
-
-    return render_template(
-        "index.html",
-        streak_leaderboard=streak_leaderboard,
-        runners=runners
-    )
 
 # -----------------------------
 # CHECK-IN PAGE
