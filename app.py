@@ -399,7 +399,7 @@ def calculate_streak(runner_id, attendance):
     dates = sorted([
         datetime.strptime(a["date"], "%Y-%m-%d")
         for a in attendance
-        if a["id"] == runner_id and a["verified"] == "Yes"
+        if a["id"] == runner_id and a["verified"].strip().lower() == "yes"
     ])
 
     if not dates:
@@ -407,12 +407,13 @@ def calculate_streak(runner_id, attendance):
 
     streak = 1
     for i in range(len(dates) - 1, 0, -1):
-        if dates[i] - dates[i - 1] == timedelta(days=1):
+        if dates[i].date() - dates[i - 1].date() == timedelta(days=1):
             streak += 1
         else:
             break
 
     return streak
+
 
 
 # -----------------------------
