@@ -23,46 +23,29 @@
 <body class="bg-light">
 
     <!-- FIXED TOP NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
-        <div class="container-fluid">
+    <nav class="navbar navbar-light bg-light fixed-top shadow-sm">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
 
-            <!-- Logo -->
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='logo.png') }}" 
-                     style="height:40px; margin-right:10px;">
-                Leaven Run Club
-            </a>
+        <!-- Logo -->
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='logo.png') }}" 
+                 style="height:40px; margin-right:10px;">
+            Leaven Run Club
+        </a>
 
-            <!-- Mobile toggle -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+        <!-- Always-visible menu -->
+        <div class="d-flex gap-3">
 
-            <!-- Menu items -->
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">🏠 Home</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('checking') }}">✔ Check-In</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('runners_page') }}">➕ Add Runner</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('rewards') }}">🏅 Rewards</a>
-                    </li>
-
-                </ul>
-            </div>
+            <a class="nav-link" href="{{ url_for('index') }}">🏠</a>
+            <a class="nav-link" href="{{ url_for('checking') }}">✔</a>
+            <a class="nav-link" href="{{ url_for('runners_page') }}">➕</a>
+            <a class="nav-link" href="{{ url_for('rewards') }}">🏅</a>
 
         </div>
-    </nav>
+
+    </div>
+</nav>
+
 
     <!-- MAIN CONTENT -->
     <div class="container py-4">
